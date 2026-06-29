@@ -8,400 +8,316 @@
 <title>FNA Store Visits</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
+  .hidden { display: none !important; }
   html { font-size: 18px; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; }
   .page { display: none; }
   .page.active { display: block; min-height: calc(100vh - 140px); padding-bottom: 2rem; }
   .rating-btn { transition: all 0.15s; border-width: 2px; }
   .rating-btn.selected { transform: scale(1.05); }
-  .photo-thumb { width: 110px; height: 110px; object-fit: cover; border-radius: 12px; cursor: pointer; }
+  .photo-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; cursor: pointer; }
   .tab-btn.active-tab { border-bottom: 4px solid #16a34a; color: #16a34a; font-weight: 700; }
   input, select, textarea { font-size: 18px !important; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; }
   .modal-box { background: white; border-radius: 1rem; padding: 1.5rem; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
   #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 14px 24px; border-radius: 10px; font-size: 16px; z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
   #toast.show { opacity: 1; }
-  .photo-fullscreen { position: fixed; inset: 0; background: black; z-index: 200; display: flex; align-items: center; justify-content: center; }
-  .photo-fullscreen img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .section-label { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .form-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 18px; background: #f8fafc; outline: none; transition: border-color 0.15s, background 0.15s; font-size: 18px !important; }
-  .form-input:focus { border-color: #16a34a; background: white; }
+  .photo-fs { position: fixed; inset: 0; background: black; z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .photo-fs img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .slbl { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; display: block; }
+  .finput { width: 100%; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 18px; background: #f8fafc; outline: none; font-size: 18px !important; box-sizing: border-box; }
+  .finput:focus { border-color: #16a34a; background: white; }
+  .card { background: white; border-radius: 14px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.07); border: 1px solid #f1f5f9; margin-bottom: 12px; }
+  .btn-green { width: 100%; background: #16a34a; color: white; font-weight: 700; border-radius: 14px; padding: 18px; font-size: 18px; border: none; cursor: pointer; }
+  .btn-green:active { background: #15803d; }
 </style>
 </head>
 <body>
-
 <div id="toast"></div>
 
-<!-- ══════════════════════════════ LOGIN -->
+<!-- LOGIN -->
 <div id="login-screen">
-  <div class="min-h-screen bg-gradient-to-b from-green-700 to-green-900 flex flex-col items-center justify-center p-6">
-    <div class="text-white text-center mb-8">
-      <div class="text-7xl mb-4">🍍</div>
-      <div class="text-4xl font-bold">FNA Store Visits</div>
-      <div class="text-green-200 mt-2 text-lg">Fyffes North America</div>
+  <div style="min-height:100vh;background:linear-gradient(to bottom,#15803d,#14532d);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+    <div style="text-align:center;color:white;margin-bottom:32px;">
+      <div style="font-size:72px;margin-bottom:12px;">🍍</div>
+      <div style="font-size:36px;font-weight:700;">FNA Store Visits</div>
+      <div style="color:#86efac;margin-top:6px;font-size:18px;">Fyffes North America</div>
     </div>
-    <div class="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl">
-      <p class="text-gray-500 mb-4 text-base font-medium">Select your name to continue</p>
-      <div id="user-list" class="space-y-2"></div>
+    <div style="width:100%;max-width:400px;background:white;border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <p style="color:#64748b;margin-bottom:16px;font-size:17px;font-weight:500;">Select your name to continue</p>
+      <div id="user-list"></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════ APP -->
+<!-- APP -->
 <div id="app-screen" class="hidden">
-  <header class="bg-green-700 text-white sticky top-0 z-40 shadow-md">
-    <div class="flex items-center justify-between px-4 py-4">
-      <button id="header-back" onclick="Router.back()" class="hidden text-white text-2xl w-10 h-10 flex items-center justify-center">&#8592;</button>
-      <h1 id="header-title" class="font-bold text-xl flex-1 text-center">Dashboard</h1>
-      <div class="w-10 flex justify-end">
-        <span id="user-avatar" onclick="Router.navigate('profile')" class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold cursor-pointer"></span>
-      </div>
+  <header style="background:#15803d;color:white;position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
+      <button id="header-back" onclick="Router.back()" class="hidden" style="color:white;font-size:24px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;">&#8592;</button>
+      <h1 id="header-title" style="font-weight:700;font-size:20px;flex:1;text-align:center;margin:0;">Dashboard</h1>
+      <span id="user-avatar" onclick="Router.navigate('profile')" style="width:40px;height:40px;border-radius:50%;background:#16a34a;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;"></span>
     </div>
   </header>
 
-  <div id="content" class="pb-20">
+  <div id="content" style="padding-bottom:90px;">
 
     <!-- DASHBOARD -->
-    <div id="page-dashboard" class="page p-4 space-y-4">
-      <div id="dash-greeting" class="text-gray-500 text-sm"></div>
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div id="stat-visits" class="text-4xl font-bold text-green-600">0</div>
-          <div class="text-sm text-gray-400 mt-1">Visits this month</div>
+    <div id="page-dashboard" class="page" style="padding:16px;">
+      <div id="dash-greeting" style="color:#64748b;font-size:15px;margin-bottom:16px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div class="card" style="text-align:center;">
+          <div id="stat-visits" style="font-size:42px;font-weight:700;color:#16a34a;">0</div>
+          <div style="font-size:13px;color:#94a3b8;margin-top:4px;">Visits this month</div>
         </div>
-        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div id="stat-items" class="text-4xl font-bold text-amber-500">0</div>
-          <div class="text-sm text-gray-400 mt-1">Items inspected</div>
+        <div class="card" style="text-align:center;">
+          <div id="stat-items" style="font-size:42px;font-weight:700;color:#f59e0b;">0</div>
+          <div style="font-size:13px;color:#94a3b8;margin-top:4px;">Items inspected</div>
         </div>
       </div>
-      <div>
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="font-semibold text-gray-700">Recent Visits</h2>
-          <button onclick="Router.navigate('visits')" class="text-green-600 text-sm">See all →</button>
-        </div>
-        <div id="recent-visits" class="space-y-3"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-weight:600;color:#374151;font-size:17px;">Recent Visits</span>
+        <button onclick="Router.navigate('visits')" style="color:#16a34a;font-size:15px;background:none;border:none;cursor:pointer;">See all →</button>
       </div>
-      <button onclick="Router.navigate('visit-new')" class="fixed bottom-24 right-5 w-16 h-16 bg-green-600 rounded-full shadow-xl flex items-center justify-center text-white text-4xl z-10">+</button>
+      <div id="recent-visits"></div>
+      <button onclick="Router.navigate('visit-new')" style="position:fixed;bottom:90px;right:20px;width:64px;height:64px;background:#16a34a;border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:white;font-size:36px;border:none;cursor:pointer;z-index:10;">+</button>
     </div>
 
     <!-- VISITS LIST -->
-    <div id="page-visits" class="page p-4 space-y-3">
-      <div class="flex gap-2">
-        <input id="visits-search" type="text" placeholder="Search customer..." oninput="Render.visitsList()" class="flex-1 form-input">
-        <select id="visits-filter-channel" onchange="Render.visitsList()" class="form-input" style="width:auto">
-          <option value="">All</option>
-          <option value="Retail">Retail</option>
-          <option value="Wholesale">Wholesale</option>
+    <div id="page-visits" class="page" style="padding:16px;">
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <input id="visits-search" type="text" placeholder="Search..." oninput="Render.visitsList()" class="finput" style="flex:1;">
+        <select id="visits-filter-channel" onchange="Render.visitsList()" class="finput" style="width:auto;">
+          <option value="">All</option><option>Retail</option><option>Wholesale</option>
         </select>
       </div>
-      <div id="visits-list" class="space-y-3"></div>
-      <button onclick="Router.navigate('visit-new')" class="fixed bottom-24 right-5 w-16 h-16 bg-green-600 rounded-full shadow-xl flex items-center justify-center text-white text-4xl z-10">+</button>
+      <div id="visits-list"></div>
+      <button onclick="Router.navigate('visit-new')" style="position:fixed;bottom:90px;right:20px;width:64px;height:64px;background:#16a34a;border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:white;font-size:36px;border:none;cursor:pointer;z-index:10;">+</button>
     </div>
 
     <!-- NEW VISIT -->
-    <div id="page-visit-new" class="page p-4">
-      <form id="visit-form" onsubmit="Actions.saveVisit(event)" class="space-y-4">
+    <div id="page-visit-new" class="page" style="padding:16px;">
+      <form id="visit-form" onsubmit="Actions.saveVisit(event)">
         <input type="hidden" id="vf-id">
-        <div class="bg-white rounded-xl p-4 shadow-sm space-y-4">
-
-          <div>
-            <div class="section-label">Customer *</div>
-            <input type="hidden" id="vf-customer-id">
-            <button type="button" id="vf-customer-btn" onclick="UI.openCustomerPicker()" class="form-input text-left flex items-center justify-between text-gray-400">
-              <span id="vf-customer-btn-label">Tap to select customer…</span>
-              <span class="text-gray-300 text-lg ml-2">▼</span>
-            </button>
-            <div id="vf-customer-selected" class="mt-2 hidden">
-              <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                <div>
-                  <div id="vf-customer-name" class="font-semibold text-green-800 text-base"></div>
-                  <div id="vf-customer-sub" class="text-sm text-green-600"></div>
-                </div>
-                <button type="button" onclick="UI.clearCustomer()" class="text-green-400 text-xl ml-3">✕</button>
+        <div class="card" style="margin-bottom:12px;">
+          <label class="slbl">Customer *</label>
+          <input type="hidden" id="vf-customer-id">
+          <button type="button" id="vf-customer-btn" onclick="UI.openCustomerPicker()" class="finput" style="text-align:left;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+            <span id="vf-customer-btn-label" style="color:#94a3b8;">Tap to select customer…</span>
+            <span style="color:#cbd5e1;">▼</span>
+          </button>
+          <div id="vf-customer-selected" class="hidden" style="margin-top:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 16px;">
+              <div>
+                <div id="vf-customer-name" style="font-weight:600;color:#166534;font-size:16px;"></div>
+                <div id="vf-customer-sub" style="font-size:14px;color:#16a34a;margin-top:2px;"></div>
               </div>
+              <button type="button" onclick="UI.clearCustomer()" style="color:#86efac;font-size:22px;background:none;border:none;cursor:pointer;padding:0 4px;">✕</button>
             </div>
           </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <div class="section-label">Date *</div>
-              <input id="vf-date" type="date" required class="form-input">
-            </div>
-            <div>
-              <div class="section-label">Week #</div>
-              <input id="vf-week" type="text" readonly placeholder="Auto" class="form-input bg-gray-100 text-gray-500">
-            </div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div><label class="slbl">Date *</label><input id="vf-date" type="date" required class="finput" oninput="UI.updateWeek()"></div>
+            <div><label class="slbl">Week</label><input id="vf-week" type="text" readonly class="finput" style="background:#f1f5f9;color:#94a3b8;"></div>
           </div>
-
-          <div class="grid grid-cols-2 gap-3">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div><label class="slbl">Channel</label><input id="vf-channel" type="text" readonly class="finput" style="background:#f1f5f9;color:#94a3b8;"></div>
             <div>
-              <div class="section-label">Channel</div>
-              <input id="vf-channel" type="text" readonly class="form-input bg-gray-100 text-gray-500">
-            </div>
-            <div>
-              <div class="section-label">Visit Purpose</div>
-              <select id="vf-purpose" class="form-input">
+              <label class="slbl">Purpose</label>
+              <select id="vf-purpose" class="finput">
                 <option value="">Select...</option>
-                <option>Routine Inspection</option>
-                <option>Follow-up Visit</option>
-                <option>New Customer Introduction</option>
-                <option>Complaint Resolution</option>
-                <option>Sales Visit</option>
-                <option>Other</option>
+                <option>Routine Inspection</option><option>Follow-up Visit</option>
+                <option>New Customer Introduction</option><option>Complaint Resolution</option>
+                <option>Sales Visit</option><option>Other</option>
               </select>
             </div>
           </div>
-
-          <div>
-            <div class="section-label">Notes</div>
-            <textarea id="vf-notes" rows="3" placeholder="General visit notes..." class="form-input resize-none"></textarea>
-          </div>
+          <div><label class="slbl">Notes</label><textarea id="vf-notes" rows="3" class="finput" style="resize:none;" placeholder="General visit notes..."></textarea></div>
         </div>
-        <button type="submit" class="w-full bg-green-600 text-white font-bold rounded-xl py-5 shadow-md text-lg">Save &amp; Add Products →</button>
+        <button type="submit" class="btn-green">Save &amp; Add Products →</button>
       </form>
     </div>
 
     <!-- VISIT DETAIL -->
-    <div id="page-visit-detail" class="page p-4 space-y-4">
-      <div id="vd-info-card" class="bg-white rounded-xl p-4 shadow-sm"></div>
-      <div>
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="font-semibold text-gray-700">Inspection Items</h2>
-          <button id="vd-add-item" class="bg-green-600 text-white text-base font-semibold px-5 py-3 rounded-xl">+ Add Product</button>
-        </div>
-        <div id="vd-items-list" class="space-y-3"></div>
-        <div id="vd-empty-items" class="text-center text-gray-400 py-10 text-sm hidden">No products inspected yet.<br>Tap "+ Add Product" to start.</div>
+    <div id="page-visit-detail" class="page" style="padding:16px;">
+      <div id="vd-info-card" class="card"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-weight:600;color:#374151;font-size:17px;">Inspection Items</span>
+        <button id="vd-add-item" style="background:#16a34a;color:white;font-size:15px;font-weight:600;padding:10px 18px;border-radius:12px;border:none;cursor:pointer;">+ Add Product</button>
       </div>
+      <div id="vd-items-list"></div>
+      <div id="vd-empty" class="hidden" style="text-align:center;color:#94a3b8;padding:40px 0;font-size:16px;">No products inspected yet.<br>Tap "+ Add Product" to start.</div>
     </div>
 
-    <!-- INSPECTION ITEM FORM -->
-    <div id="page-inspection-new" class="page p-4">
-      <form id="inspection-form" onsubmit="Actions.saveInspection(event)" class="space-y-4">
+    <!-- INSPECTION FORM -->
+    <div id="page-inspection-new" class="page" style="padding:16px;">
+      <form id="inspection-form" onsubmit="Actions.saveInspection(event)">
         <input type="hidden" id="if-id">
         <input type="hidden" id="if-visit-id">
 
-        <!-- Product Selection -->
-        <div class="bg-white rounded-xl p-4 shadow-sm space-y-4">
-          <div class="text-sm font-bold text-gray-700 border-b pb-2">Product</div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <div class="section-label">Category *</div>
-              <select id="if-category" required onchange="UI.filterProducts()" class="form-input">
-                <option value="">Select...</option>
-              </select>
-            </div>
-            <div>
-              <div class="section-label">Product *</div>
-              <select id="if-product" required onchange="UI.fillBrand()" class="form-input">
-                <option value="">Select category first</option>
-              </select>
-            </div>
+        <div class="card">
+          <div style="font-weight:700;color:#374151;font-size:16px;border-bottom:1px solid #f1f5f9;padding-bottom:10px;margin-bottom:14px;">Product</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div><label class="slbl">Category *</label><select id="if-category" required onchange="UI.filterProducts()" class="finput"><option value="">Select...</option></select></div>
+            <div><label class="slbl">Product *</label><select id="if-product" required onchange="UI.fillBrand()" class="finput"><option value="">Select category</option></select></div>
           </div>
-          <div>
-            <div class="section-label">Brand</div>
-            <input id="if-brand" type="text" placeholder="Auto-filled or type brand name" class="form-input">
-          </div>
+          <div><label class="slbl">Brand</label><input id="if-brand" type="text" class="finput" placeholder="Auto-filled or enter brand"></div>
         </div>
 
-        <!-- Ratings -->
-        <div class="bg-white rounded-xl p-4 shadow-sm space-y-4">
-          <div class="text-sm font-bold text-gray-700 border-b pb-2">Quality Assessment</div>
-
-          <div>
-            <div class="section-label">Condition / Quality *</div>
-            <div class="grid grid-cols-4 gap-2" id="rating-condition">
-              <button type="button" onclick="UI.selectRating('condition','Poor')" data-val="Poor" class="rating-btn py-4 rounded-xl border-red-200 text-red-600 text-base font-bold bg-red-50">Poor</button>
-              <button type="button" onclick="UI.selectRating('condition','Fair')" data-val="Fair" class="rating-btn py-4 rounded-xl border-amber-200 text-amber-600 text-base font-bold bg-amber-50">Fair</button>
-              <button type="button" onclick="UI.selectRating('condition','Good')" data-val="Good" class="rating-btn py-4 rounded-xl border-blue-200 text-blue-600 text-base font-bold bg-blue-50">Good</button>
-              <button type="button" onclick="UI.selectRating('condition','Excellent')" data-val="Excellent" class="rating-btn py-4 rounded-xl border-green-200 text-green-700 text-base font-bold bg-green-50">Exc.</button>
+        <div class="card">
+          <div style="font-weight:700;color:#374151;font-size:16px;border-bottom:1px solid #f1f5f9;padding-bottom:10px;margin-bottom:14px;">Quality Assessment</div>
+          <div style="margin-bottom:16px;">
+            <label class="slbl">Condition / Quality *</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;" id="rating-condition">
+              <button type="button" onclick="UI.selectRating('condition','Poor')" data-val="Poor" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #fecaca;color:#dc2626;font-size:15px;font-weight:700;background:#fef2f2;cursor:pointer;">Poor</button>
+              <button type="button" onclick="UI.selectRating('condition','Fair')" data-val="Fair" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #fde68a;color:#d97706;font-size:15px;font-weight:700;background:#fffbeb;cursor:pointer;">Fair</button>
+              <button type="button" onclick="UI.selectRating('condition','Good')" data-val="Good" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #bfdbfe;color:#2563eb;font-size:15px;font-weight:700;background:#eff6ff;cursor:pointer;">Good</button>
+              <button type="button" onclick="UI.selectRating('condition','Excellent')" data-val="Excellent" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #bbf7d0;color:#16a34a;font-size:15px;font-weight:700;background:#f0fdf4;cursor:pointer;">Exc.</button>
             </div>
             <input type="hidden" id="if-condition">
           </div>
-
-          <div>
-            <div class="section-label">Shelf Presentation *</div>
-            <div class="grid grid-cols-4 gap-2" id="rating-shelf">
-              <button type="button" onclick="UI.selectRating('shelf','Poor')" data-val="Poor" class="rating-btn py-4 rounded-xl border-red-200 text-red-600 text-base font-bold bg-red-50">Poor</button>
-              <button type="button" onclick="UI.selectRating('shelf','Fair')" data-val="Fair" class="rating-btn py-4 rounded-xl border-amber-200 text-amber-600 text-base font-bold bg-amber-50">Fair</button>
-              <button type="button" onclick="UI.selectRating('shelf','Good')" data-val="Good" class="rating-btn py-4 rounded-xl border-blue-200 text-blue-600 text-base font-bold bg-blue-50">Good</button>
-              <button type="button" onclick="UI.selectRating('shelf','Excellent')" data-val="Excellent" class="rating-btn py-4 rounded-xl border-green-200 text-green-700 text-base font-bold bg-green-50">Exc.</button>
+          <div style="margin-bottom:16px;">
+            <label class="slbl">Shelf Presentation *</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;" id="rating-shelf">
+              <button type="button" onclick="UI.selectRating('shelf','Poor')" data-val="Poor" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #fecaca;color:#dc2626;font-size:15px;font-weight:700;background:#fef2f2;cursor:pointer;">Poor</button>
+              <button type="button" onclick="UI.selectRating('shelf','Fair')" data-val="Fair" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #fde68a;color:#d97706;font-size:15px;font-weight:700;background:#fffbeb;cursor:pointer;">Fair</button>
+              <button type="button" onclick="UI.selectRating('shelf','Good')" data-val="Good" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #bfdbfe;color:#2563eb;font-size:15px;font-weight:700;background:#eff6ff;cursor:pointer;">Good</button>
+              <button type="button" onclick="UI.selectRating('shelf','Excellent')" data-val="Excellent" class="rating-btn" style="padding:16px 4px;border-radius:12px;border:2px solid #bbf7d0;color:#16a34a;font-size:15px;font-weight:700;background:#f0fdf4;cursor:pointer;">Exc.</button>
             </div>
             <input type="hidden" id="if-shelf">
           </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <div class="section-label">Ripeness Stage</div>
-              <select id="if-ripeness" class="form-input">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div><label class="slbl">Ripeness Stage</label>
+              <select id="if-ripeness" class="finput">
                 <option value="">Select...</option>
-                <option>1 - Full Green</option>
-                <option>2 - Breaking</option>
-                <option>3 - More Green than Yellow</option>
-                <option>4 - More Yellow than Green</option>
-                <option>5 - Full Yellow</option>
-                <option>6 - Yellow with Brown Spots</option>
-                <option>7 - Mostly Brown</option>
-                <option>N/A</option>
+                <option>1 - Full Green</option><option>2 - Breaking</option>
+                <option>3 - More Green than Yellow</option><option>4 - More Yellow than Green</option>
+                <option>5 - Full Yellow</option><option>6 - Yellow with Brown Spots</option>
+                <option>7 - Mostly Brown</option><option>N/A</option>
               </select>
             </div>
-            <div>
-              <div class="section-label">Stock Level</div>
-              <select id="if-stock" class="form-input">
+            <div><label class="slbl">Stock Level</label>
+              <select id="if-stock" class="finput">
                 <option value="">Select...</option>
-                <option>Empty</option>
-                <option>Low</option>
-                <option>Medium</option>
-                <option>Full</option>
-                <option>Overstocked</option>
+                <option>Empty</option><option>Low</option><option>Medium</option><option>Full</option><option>Overstocked</option>
               </select>
             </div>
           </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <div class="section-label">Facings (# on shelf)</div>
-              <input id="if-facings" type="number" min="0" step="1" placeholder="e.g. 4" class="form-input">
-            </div>
-            <div>
-              <div class="section-label">Price Observed ($)</div>
-              <input id="if-price" type="number" step="0.01" min="0" placeholder="0.00" class="form-input">
-            </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div><label class="slbl">Facings (#)</label><input id="if-facings" type="number" min="0" step="1" placeholder="e.g. 4" class="finput"></div>
+            <div><label class="slbl">Price Observed ($)</label><input id="if-price" type="number" step="0.01" min="0" placeholder="0.00" class="finput"></div>
           </div>
         </div>
 
-        <!-- Competitor -->
-        <div class="bg-white rounded-xl p-4 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="text-sm font-bold text-gray-700">Competitor Present?</div>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" id="if-competitor-check" onchange="UI.toggleCompetitor()" class="w-5 h-5 rounded accent-green-600">
-              <span class="text-sm font-medium text-gray-600">Yes</span>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-weight:700;color:#374151;font-size:16px;">Competitor Present?</span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="if-competitor-check" onchange="UI.toggleCompetitor()" style="width:22px;height:22px;accent-color:#16a34a;">
+              <span style="font-size:16px;color:#374151;">Yes</span>
             </label>
           </div>
-          <div id="if-competitor-section" class="hidden space-y-2">
-            <div class="section-label">Competitor Brand / Details</div>
-            <input id="if-competitor-notes" type="text" placeholder="e.g. Dole Cavendish, lower price..." class="form-input">
+          <div id="if-competitor-section" class="hidden">
+            <label class="slbl">Competitor Details</label>
+            <input id="if-competitor-notes" type="text" placeholder="Brand, price, notes..." class="finput">
           </div>
         </div>
 
-        <!-- Notes -->
-        <div class="bg-white rounded-xl p-4 shadow-sm space-y-3">
-          <div class="text-sm font-bold text-gray-700">Notes</div>
-          <textarea id="if-notes" rows="3" placeholder="Display quality, damage, observations..." class="form-input resize-none"></textarea>
+        <div class="card">
+          <label class="slbl">Notes</label>
+          <textarea id="if-notes" rows="3" class="finput" style="resize:none;" placeholder="Display quality, damage, observations..."></textarea>
         </div>
 
-        <!-- Photos -->
-        <div class="bg-white rounded-xl p-4 shadow-sm space-y-3">
-          <div class="text-sm font-bold text-gray-700">Photos</div>
-          <div id="if-photos-preview" class="flex flex-wrap gap-2"></div>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="flex flex-col items-center justify-center gap-2 bg-green-50 border-2 border-dashed border-green-300 rounded-xl p-5 cursor-pointer text-green-700 text-base font-semibold active:bg-green-100">
-              <span class="text-4xl">📷</span>
-              <span>Take Photo</span>
+        <div class="card">
+          <div style="font-weight:700;color:#374151;font-size:16px;margin-bottom:12px;">Photos</div>
+          <div id="if-photos-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#f0fdf4;border:2px dashed #86efac;border-radius:14px;padding:20px;cursor:pointer;color:#16a34a;font-weight:600;font-size:15px;">
+              <span style="font-size:36px;">📷</span>Take Photo
               <input type="file" accept="image/*" capture="environment" class="hidden" onchange="UI.addPhotos(event)">
             </label>
-            <label class="flex flex-col items-center justify-center gap-2 bg-blue-50 border-2 border-dashed border-blue-300 rounded-xl p-5 cursor-pointer text-blue-700 text-base font-semibold active:bg-blue-100">
-              <span class="text-4xl">🖼️</span>
-              <span>Upload Photo</span>
+            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#eff6ff;border:2px dashed #93c5fd;border-radius:14px;padding:20px;cursor:pointer;color:#2563eb;font-weight:600;font-size:15px;">
+              <span style="font-size:36px;">🖼️</span>Upload
               <input type="file" accept="image/*" multiple class="hidden" onchange="UI.addPhotos(event)">
             </label>
           </div>
-          <div id="if-photo-count" class="text-xs text-gray-400"></div>
+          <div id="if-photo-count" style="font-size:14px;color:#94a3b8;margin-top:8px;"></div>
         </div>
 
-        <button type="submit" class="w-full bg-green-600 text-white font-bold rounded-xl py-5 shadow-md text-lg">Save Inspection Item</button>
+        <button type="submit" class="btn-green" style="margin-top:4px;">Save Inspection Item</button>
       </form>
     </div>
 
     <!-- ADMIN -->
     <div id="page-admin" class="page">
-      <div class="flex overflow-x-auto border-b bg-white sticky top-16 z-30">
-        <button onclick="Admin.showTable('visits')" class="tab-btn px-4 py-4 text-base whitespace-nowrap text-gray-500 font-medium" data-tab="visits">Visits</button>
-        <button onclick="Admin.showTable('customers')" class="tab-btn px-4 py-4 text-base whitespace-nowrap text-gray-500 font-medium" data-tab="customers">Customers</button>
-        <button onclick="Admin.showTable('products')" class="tab-btn px-4 py-4 text-base whitespace-nowrap text-gray-500 font-medium" data-tab="products">Products</button>
-        <button onclick="Admin.showTable('fruit_categories')" class="tab-btn px-4 py-4 text-base whitespace-nowrap text-gray-500 font-medium" data-tab="fruit_categories">Categories</button>
-        <button onclick="Admin.showTable('users')" class="tab-btn px-4 py-4 text-base whitespace-nowrap text-gray-500 font-medium" data-tab="users">Users</button>
-        <button onclick="Admin.showTable('customer_types')" class="tab-btn px-4 py-4 text-base whitespace-nowrap text-gray-500 font-medium" data-tab="customer_types">Types</button>
+      <div style="display:flex;overflow-x:auto;border-bottom:1px solid #e2e8f0;background:white;position:sticky;top:68px;z-index:30;">
+        <button onclick="Admin.showTable('visits')" class="tab-btn" data-tab="visits" style="padding:16px 14px;font-size:15px;white-space:nowrap;color:#64748b;background:none;border:none;cursor:pointer;font-weight:500;">Visits</button>
+        <button onclick="Admin.showTable('customers')" class="tab-btn" data-tab="customers" style="padding:16px 14px;font-size:15px;white-space:nowrap;color:#64748b;background:none;border:none;cursor:pointer;font-weight:500;">Customers</button>
+        <button onclick="Admin.showTable('products')" class="tab-btn" data-tab="products" style="padding:16px 14px;font-size:15px;white-space:nowrap;color:#64748b;background:none;border:none;cursor:pointer;font-weight:500;">Products</button>
+        <button onclick="Admin.showTable('fruit_categories')" class="tab-btn" data-tab="fruit_categories" style="padding:16px 14px;font-size:15px;white-space:nowrap;color:#64748b;background:none;border:none;cursor:pointer;font-weight:500;">Categories</button>
+        <button onclick="Admin.showTable('users')" class="tab-btn" data-tab="users" style="padding:16px 14px;font-size:15px;white-space:nowrap;color:#64748b;background:none;border:none;cursor:pointer;font-weight:500;">Users</button>
+        <button onclick="Admin.showTable('customer_types')" class="tab-btn" data-tab="customer_types" style="padding:16px 14px;font-size:15px;white-space:nowrap;color:#64748b;background:none;border:none;cursor:pointer;font-weight:500;">Types</button>
       </div>
-      <div id="admin-table-content" class="p-4"></div>
+      <div id="admin-content" style="padding:16px;"></div>
     </div>
 
     <!-- PROFILE -->
-    <div id="page-profile" class="page p-4 space-y-4">
-      <div class="bg-white rounded-xl p-6 shadow-sm text-center space-y-2">
-        <div id="profile-avatar" class="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center text-white text-2xl font-bold mx-auto"></div>
-        <div id="profile-name" class="text-xl font-bold text-gray-800"></div>
-        <div id="profile-email" class="text-sm text-gray-400"></div>
-        <div id="profile-role" class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full"></div>
+    <div id="page-profile" class="page" style="padding:16px;">
+      <div class="card" style="text-align:center;padding:32px 16px;margin-bottom:16px;">
+        <div id="profile-avatar" style="width:70px;height:70px;border-radius:50%;background:#16a34a;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:700;margin:0 auto 12px;"></div>
+        <div id="profile-name" style="font-size:22px;font-weight:700;color:#1e293b;"></div>
+        <div id="profile-email" style="font-size:14px;color:#94a3b8;margin-top:4px;"></div>
+        <div id="profile-role" style="display:inline-block;background:#f0fdf4;color:#16a34a;font-size:14px;font-weight:600;padding:4px 14px;border-radius:999px;margin-top:8px;"></div>
       </div>
-      <button onclick="Actions.logout()" class="w-full bg-red-50 border border-red-200 text-red-600 font-bold rounded-xl py-5 text-lg">Sign Out</button>
+      <button onclick="Actions.logout()" style="width:100%;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-weight:700;border-radius:14px;padding:18px;font-size:18px;cursor:pointer;">Sign Out</button>
     </div>
 
-  </div><!-- /content -->
+  </div>
 
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex" style="padding-bottom: env(safe-area-inset-bottom);">
-    <button onclick="Router.navigate('dashboard')" class="nav-btn flex-1 flex flex-col items-center py-3 gap-1.5 text-gray-400" data-nav="dashboard">
-      <span class="text-3xl">🏠</span><span class="text-sm font-medium">Home</span>
-    </button>
-    <button onclick="Router.navigate('visits')" class="nav-btn flex-1 flex flex-col items-center py-3 gap-1.5 text-gray-400" data-nav="visits">
-      <span class="text-3xl">📋</span><span class="text-sm font-medium">Visits</span>
-    </button>
-    <button onclick="Router.navigate('admin')" class="nav-btn flex-1 flex flex-col items-center py-3 gap-1.5 text-gray-400" data-nav="admin">
-      <span class="text-3xl">⚙️</span><span class="text-sm font-medium">Admin</span>
-    </button>
-    <button onclick="Router.navigate('profile')" class="nav-btn flex-1 flex flex-col items-center py-3 gap-1.5 text-gray-400" data-nav="profile">
-      <span class="text-3xl">👤</span><span class="text-sm font-medium">Profile</span>
-    </button>
+  <!-- BOTTOM NAV -->
+  <nav style="position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2e8f0;z-index:40;display:flex;padding-bottom:env(safe-area-inset-bottom);">
+    <button onclick="Router.navigate('dashboard')" class="nav-btn" data-nav="dashboard" style="flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;color:#94a3b8;background:none;border:none;cursor:pointer;"><span style="font-size:28px;">🏠</span><span style="font-size:13px;font-weight:500;">Home</span></button>
+    <button onclick="Router.navigate('visits')" class="nav-btn" data-nav="visits" style="flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;color:#94a3b8;background:none;border:none;cursor:pointer;"><span style="font-size:28px;">📋</span><span style="font-size:13px;font-weight:500;">Visits</span></button>
+    <button onclick="Router.navigate('admin')" class="nav-btn" data-nav="admin" style="flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;color:#94a3b8;background:none;border:none;cursor:pointer;"><span style="font-size:28px;">⚙️</span><span style="font-size:13px;font-weight:500;">Admin</span></button>
+    <button onclick="Router.navigate('profile')" class="nav-btn" data-nav="profile" style="flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;color:#94a3b8;background:none;border:none;cursor:pointer;"><span style="font-size:28px;">👤</span><span style="font-size:13px;font-weight:500;">Profile</span></button>
   </nav>
+</div>
+
+<!-- CUSTOMER PICKER -->
+<div id="customer-picker" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:50;display:flex;align-items:flex-end;">
+  <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="padding:16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:12px;">
+      <input id="customer-picker-search" type="text" placeholder="Search by name, city, account..." oninput="UI.filterCustomerPicker()" style="flex:1;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;font-size:17px;background:#f8fafc;outline:none;">
+      <button onclick="UI.closeCustomerPicker()" style="color:#94a3b8;font-size:24px;background:none;border:none;cursor:pointer;padding:4px;">✕</button>
+    </div>
+    <div id="customer-picker-list" style="overflow-y:auto;flex:1;"></div>
+  </div>
 </div>
 
 <!-- MODAL -->
 <div id="modal" class="modal-overlay hidden" onclick="if(event.target===this)UI.closeModal()">
   <div class="modal-box">
-    <div class="flex justify-between items-start mb-4">
-      <h3 id="modal-title" class="font-bold text-gray-800 text-lg"></h3>
-      <button onclick="UI.closeModal()" class="text-gray-400 text-xl leading-none ml-4">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px;">
+      <h3 id="modal-title" style="font-weight:700;color:#1e293b;font-size:19px;margin:0;"></h3>
+      <button onclick="UI.closeModal()" style="color:#94a3b8;font-size:22px;background:none;border:none;cursor:pointer;margin-left:12px;">✕</button>
     </div>
     <div id="modal-body"></div>
   </div>
 </div>
 
-<!-- CUSTOMER PICKER MODAL -->
-<div id="customer-picker" class="modal-overlay hidden" style="align-items: flex-end; padding: 0;">
-  <div style="background:white; border-radius: 1.5rem 1.5rem 0 0; width:100%; max-height:85vh; display:flex; flex-direction:column;">
-    <div style="padding: 1.25rem 1.25rem 0.75rem; border-bottom: 1px solid #e2e8f0; display:flex; align-items:center; gap:0.75rem;">
-      <input id="customer-picker-search" type="text" placeholder="Search by name, city, or account…" oninput="UI.filterCustomerPicker()" autocomplete="off"
-        style="flex:1; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; font-size:18px; background:#f8fafc; outline:none;">
-      <button onclick="UI.closeCustomerPicker()" style="color:#94a3b8; font-size:1.5rem; padding:0.5rem;">✕</button>
-    </div>
-    <div id="customer-picker-list" style="overflow-y:auto; flex:1; padding:0.5rem 0;"></div>
-  </div>
-</div>
-
 <!-- FULLSCREEN PHOTO -->
-<div id="photo-fs" class="photo-fullscreen hidden" onclick="this.classList.add('hidden')">
+<div id="photo-fs" class="photo-fs hidden" onclick="this.classList.add('hidden')">
   <img id="photo-fs-img" src="" alt="">
-  <button onclick="document.getElementById('photo-fs').classList.add('hidden')" style="position:absolute;top:16px;right:16px;color:white;font-size:24px;background:rgba(0,0,0,0.5);border-radius:50%;width:40px;height:40px;">✕</button>
+  <button onclick="document.getElementById('photo-fs').classList.add('hidden')" style="position:absolute;top:20px;right:20px;color:white;font-size:26px;background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;border:none;cursor:pointer;">✕</button>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════════════════════
-// SEED
-// ══════════════════════════════════════════════════════════════════════════════
 const SEED = {
-  roles: [{id:'ROL-01',name:'Admin',active:true},{id:'ROL-02',name:'Team Member',active:true}],
-  customer_types: [
-    {id:'CT-01',name:'Current Customer',active:true},
-    {id:'CT-02',name:'Potential Customer',active:true},
-    {id:'CT-03',name:'Competitor',active:true},
-    {id:'CT-04',name:'Other',active:true}
-  ],
-  fruit_categories: [
-    {id:'CAT-01',name:'Bananas',active:true},{id:'CAT-02',name:'Organics',active:true},
-    {id:'CAT-03',name:'Pineapples',active:true},{id:'CAT-04',name:'Tropicals',active:true},
-    {id:'CAT-05',name:'Plantains',active:true},{id:'CAT-06',name:'Exotics',active:true}
-  ],
-  products: [
+  roles:[{id:'ROL-01',name:'Admin',active:true},{id:'ROL-02',name:'Team Member',active:true}],
+  customer_types:[{id:'CT-01',name:'Current Customer',active:true},{id:'CT-02',name:'Potential Customer',active:true},{id:'CT-03',name:'Competitor',active:true},{id:'CT-04',name:'Other',active:true}],
+  fruit_categories:[{id:'CAT-01',name:'Bananas',active:true},{id:'CAT-02',name:'Organics',active:true},{id:'CAT-03',name:'Pineapples',active:true},{id:'CAT-04',name:'Tropicals',active:true},{id:'CAT-05',name:'Plantains',active:true},{id:'CAT-06',name:'Exotics',active:true}],
+  products:[
     {id:'PRD-001',name:'Cavendish Banana',category_id:'CAT-01',brand:'Fyffes',active:true},
     {id:'PRD-002',name:'Baby Banana',category_id:'CAT-01',brand:'Fyffes',active:true},
     {id:'PRD-003',name:'Red Banana',category_id:'CAT-01',brand:'Fyffes',active:true},
@@ -417,7 +333,7 @@ const SEED = {
     {id:'PRD-013',name:'Passion Fruit',category_id:'CAT-06',brand:'Fyffes',active:true},
     {id:'PRD-014',name:'Rambutan',category_id:'CAT-06',brand:'Fyffes',active:true}
   ],
-  customers: [
+  customers:[
     {id:'C001',account_number:'FNA-001',name:'Walmart Supercenter #4521',type_id:'CT-01',channel:'Retail',address:'1500 NW 107th Ave',city:'Miami',state:'FL',region:'Southeast',active:true},
     {id:'C002',account_number:'FNA-002',name:'Whole Foods Market - Brickell',type_id:'CT-01',channel:'Retail',address:'1020 S Miami Ave',city:'Miami',state:'FL',region:'Southeast',active:true},
     {id:'C003',account_number:'FNA-003',name:'Sysco South Florida',type_id:'CT-01',channel:'Wholesale',address:'7901 NW 77th Ave',city:'Medley',state:'FL',region:'Southeast',active:true},
@@ -426,7 +342,7 @@ const SEED = {
     {id:'C006',account_number:'',name:'Fresh Market - Coral Gables',type_id:'CT-02',channel:'Retail',address:'358 San Lorenzo Ave',city:'Coral Gables',state:'FL',region:'Southeast',active:true},
     {id:'C007',account_number:'',name:"Trader Joe's - Coconut Grove",type_id:'CT-03',channel:'Retail',address:'2727 SW 27th Ave',city:'Miami',state:'FL',region:'Southeast',active:true}
   ],
-  users: [
+  users:[
     {id:'jalarcon@fyffes-na.com',name:'Juan Alarcon',role:'Admin',active:true},
     {id:'alizondro@fyffes-na.com',name:'Alberto Lizondro',role:'Team Member',active:true},
     {id:'lcaicedo@fyffes-na.com',name:'Luis Caicedo',role:'Team Member',active:true},
@@ -435,601 +351,508 @@ const SEED = {
     {id:'atrinidad@fyffes-na.com',name:'Adriana Trinidad',role:'Team Member',active:true},
     {id:'jhowell@fyffes-na.com',name:'Jack Howell',role:'Team Member',active:true}
   ],
-  visits: [], inspection_items: [], photos: []
+  visits:[],inspection_items:[],photos:[]
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// DB
-// ══════════════════════════════════════════════════════════════════════════════
 const DB = {
-  _mem: {},       // in-memory fallback when localStorage is blocked
-  _noLS: false,   // true if localStorage is unavailable
-  get(k) {
-    if (this._noLS) return JSON.parse(JSON.stringify(this._mem['fna_'+k] || []));
-    try { return JSON.parse(localStorage.getItem('fna_'+k)) || []; }
-    catch(e) { this._noLS = true; return JSON.parse(JSON.stringify(this._mem['fna_'+k] || [])); }
-  },
-  set(k, d) {
-    if (this._noLS) { this._mem['fna_'+k] = d; return; }
-    try { localStorage.setItem('fna_'+k, JSON.stringify(d)); }
-    catch(e) { this._noLS = true; this._mem['fna_'+k] = d; }
-  },
-  seed() {
-    Object.entries(SEED).forEach(([k,v]) => {
-      try {
-        const existing = this.get(k);
-        if (!existing.length) this.set(k, JSON.parse(JSON.stringify(v)));
-      } catch(e) { this._noLS = true; if (!this._mem['fna_'+k]) this._mem['fna_'+k] = JSON.parse(JSON.stringify(v)); }
-    });
-  },
-  getAll(t) { return this.get(t); },
-  getById(t, id) { return this.get(t).find(r => r.id === id); },
-  save(t, rec) { const rows = this.get(t); const i = rows.findIndex(r=>r.id===rec.id); if(i>=0) rows[i]=rec; else rows.push(rec); this.set(t,rows); return rec; },
-  delete(t, id) { this.set(t, this.get(t).filter(r=>r.id!==id)); },
-  toggleActive(t, id) { const rows=this.get(t); const r=rows.find(r=>r.id===id); if(r) r.active=!r.active; this.set(t,rows); },
-  genId() { return Date.now().toString(36)+Math.random().toString(36).substr(2,5); },
-  getVisitItems(vid) { return this.get('inspection_items').filter(i=>i.visit_id===vid); },
-  getItemPhotos(iid) { return this.get('photos').filter(p=>p.item_id===iid); },
-  savePhoto(p) { const ps=this.get('photos'); ps.push(p); this.set('photos',ps); },
-  deletePhoto(id) { this.set('photos',this.get('photos').filter(p=>p.id!==id)); }
+  _mem:{},_noLS:false,
+  get(k){if(this._noLS)return JSON.parse(JSON.stringify(this._mem['fna_'+k]||[]));try{return JSON.parse(localStorage.getItem('fna_'+k))||[];}catch(e){this._noLS=true;return JSON.parse(JSON.stringify(this._mem['fna_'+k]||[]));} },
+  set(k,d){if(this._noLS){this._mem['fna_'+k]=d;return;}try{localStorage.setItem('fna_'+k,JSON.stringify(d));}catch(e){this._noLS=true;this._mem['fna_'+k]=d;} },
+  seed(){Object.entries(SEED).forEach(([k,v])=>{try{if(!this.get(k).length)this.set(k,JSON.parse(JSON.stringify(v)));}catch(e){this._noLS=true;if(!this._mem['fna_'+k])this._mem['fna_'+k]=JSON.parse(JSON.stringify(v));} });},
+  getAll(t){return this.get(t);},
+  getById(t,id){return this.get(t).find(r=>r.id===id);},
+  save(t,rec){const rows=this.get(t);const i=rows.findIndex(r=>r.id===rec.id);if(i>=0)rows[i]=rec;else rows.push(rec);this.set(t,rows);return rec;},
+  delete(t,id){this.set(t,this.get(t).filter(r=>r.id!==id));},
+  toggleActive(t,id){const rows=this.get(t);const r=rows.find(r=>r.id===id);if(r)r.active=!r.active;this.set(t,rows);},
+  genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);},
+  getVisitItems(vid){return this.get('inspection_items').filter(i=>i.visit_id===vid);},
+  getItemPhotos(iid){return this.get('photos').filter(p=>p.item_id===iid);},
+  savePhoto(p){const ps=this.get('photos');ps.push(p);this.set('photos',ps);},
+  deletePhoto(id){this.set('photos',this.get('photos').filter(p=>p.id!==id));}
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════════════════════════════
-const H = {
-  initials(n) { return n.split(' ').map(w=>w[0]).join('').toUpperCase().substr(0,2); },
-  formatDate(d) { if(!d) return ''; return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); },
-  today() { return new Date().toISOString().split('T')[0]; },
-  monthStart() { const d=new Date(); d.setDate(1); return d.toISOString().split('T')[0]; },
-  isoWeek(dateStr) {
-    const d = new Date(dateStr + 'T12:00:00');
-    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-    const w1 = new Date(d.getFullYear(), 0, 4);
-    return 1 + Math.round(((d - w1) / 86400000 - 3 + (w1.getDay() + 6) % 7) / 7);
-  },
-  ratingColor(r) { return {Poor:'bg-red-100 text-red-700',Fair:'bg-amber-100 text-amber-700',Good:'bg-blue-100 text-blue-700',Excellent:'bg-green-100 text-green-700'}[r]||'bg-gray-100 text-gray-500'; },
-  channelColor(c) { return c==='Retail'?'bg-purple-100 text-purple-700':'bg-blue-100 text-blue-700'; },
-  typeColor(t) { return {'Current Customer':'bg-green-100 text-green-700','Potential Customer':'bg-amber-100 text-amber-700','Competitor':'bg-red-100 text-red-700','Other':'bg-gray-100 text-gray-600'}[t]||'bg-gray-100 text-gray-600'; },
-  typeName(tid) { const t=DB.getById('customer_types',tid); return t?t.name:''; },
-  catName(cid) { const c=DB.getById('fruit_categories',cid); return c?c.name:''; },
-  prodName(pid) { const p=DB.getById('products',pid); return p?p.name:''; },
-  custName(cid) { const c=DB.getById('customers',cid); return c?c.name:''; },
-  // Compress image via canvas to max 1200px, JPEG 80%
-  async compressImage(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const MAX = 1200;
-          let w = img.width, h = img.height;
-          if (w > MAX) { h = h * MAX / w; w = MAX; }
-          if (h > MAX) { w = w * MAX / h; h = MAX; }
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.round(w); canvas.height = Math.round(h);
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.80));
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
+const State={user:null,currentRoute:'dashboard',history:[],currentVisitId:null,pendingPhotos:[],adminTable:'visits'};
+
+const H={
+  initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().substr(0,2);},
+  formatDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});},
+  today(){return new Date().toISOString().split('T')[0];},
+  monthStart(){const d=new Date();d.setDate(1);return d.toISOString().split('T')[0];},
+  isoWeek(ds){const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+3-(d.getDay()+6)%7);const w1=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w1)/86400000-3+(w1.getDay()+6)%7)/7);},
+  ratingColor(r){return{Poor:'#fef2f2|#dc2626',Fair:'#fffbeb|#d97706',Good:'#eff6ff|#2563eb',Excellent:'#f0fdf4|#16a34a'}[r]||'#f8fafc|#64748b';},
+  ratingBg(r){return H.ratingColor(r).split('|')[0];},
+  ratingFg(r){return H.ratingColor(r).split('|')[1];},
+  channelBadge(c){return c==='Retail'?'background:#f5f3ff;color:#7c3aed':'background:#eff6ff;color:#2563eb';},
+  typeBadge(t){return{'Current Customer':'background:#f0fdf4;color:#16a34a','Potential Customer':'background:#fffbeb;color:#d97706','Competitor':'background:#fef2f2;color:#dc2626','Other':'background:#f8fafc;color:#64748b'}[t]||'background:#f8fafc;color:#64748b';},
+  typeName(tid){const t=DB.getById('customer_types',tid);return t?t.name:'';},
+  catName(cid){const c=DB.getById('fruit_categories',cid);return c?c.name:'';},
+  prodName(pid){const p=DB.getById('products',pid);return p?p.name:'';},
+  custName(cid){const c=DB.getById('customers',cid);return c?c.name:'Unknown';},
+  async compressImage(file){return new Promise(resolve=>{const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{const MAX=1200;let w=img.width,h=img.height;if(w>MAX){h=h*MAX/w;w=MAX;}if(h>MAX){w=w*MAX/h;h=MAX;}const canvas=document.createElement('canvas');canvas.width=Math.round(w);canvas.height=Math.round(h);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',0.80));};img.src=e.target.result;};reader.readAsDataURL(file);});}
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════════════════════════
-const State = {
-  user: null, currentRoute: 'dashboard', history: [],
-  currentVisitId: null, currentItemId: null,
-  pendingPhotos: [], adminTable: 'visits'
-};
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ROUTER
-// ══════════════════════════════════════════════════════════════════════════════
-const Router = {
-  navigate(route, params={}) {
-    State.history.push(State.currentRoute);
-    State.currentRoute = route;
-    if (params.visitId) State.currentVisitId = params.visitId;
-    if (params.itemId) State.currentItemId = params.itemId;
-    this._render(route, params);
-  },
-  back() { const p=State.history.pop()||'dashboard'; State.currentRoute=p; this._render(p,{}); },
-  _render(route, params) {
+const Router={
+  navigate(route,params={}){State.history.push(State.currentRoute);State.currentRoute=route;if(params.visitId)State.currentVisitId=params.visitId;this._render(route,params);},
+  back(){const p=State.history.pop()||'dashboard';State.currentRoute=p;this._render(p,{});},
+  _render(route,params){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    const backBtn = document.getElementById('header-back');
-    backBtn.classList.toggle('hidden', ['dashboard','visits','admin','profile'].includes(route));
-    document.querySelectorAll('.nav-btn').forEach(b=>{
-      b.classList.toggle('text-green-600', b.dataset.nav===route);
-      b.classList.toggle('text-gray-400', b.dataset.nav!==route);
-    });
-    const titles = {dashboard:'Dashboard',visits:'All Visits','visit-new':'New Visit','visit-detail':'Visit Detail','inspection-new':'Inspect Product',admin:'Admin Panel',profile:'My Profile'};
-    document.getElementById('header-title').textContent = titles[route]||route;
-    const map = {dashboard:Render.dashboard,visits:Render.visitsList,'visit-new':Render.visitNew,'visit-detail':Render.visitDetail,'inspection-new':Render.inspectionNew,admin:Render.admin,profile:Render.profile};
-    if (map[route]) map[route].call(Render, params);
-    const el = document.getElementById('page-'+route);
-    if (el) el.classList.add('active');
+    document.getElementById('header-back').classList.toggle('hidden',['dashboard','visits','admin','profile'].includes(route));
+    document.querySelectorAll('.nav-btn').forEach(b=>{b.style.color=b.dataset.nav===route?'#16a34a':'#94a3b8';});
+    const titles={dashboard:'Dashboard',visits:'All Visits','visit-new':'New Visit','visit-detail':'Visit Detail','inspection-new':'Inspect Product',admin:'Admin Panel',profile:'My Profile'};
+    document.getElementById('header-title').textContent=titles[route]||route;
+    const map={dashboard:Render.dashboard,visits:Render.visitsList,'visit-new':Render.visitNew,'visit-detail':Render.visitDetail,'inspection-new':Render.inspectionNew,admin:Render.admin,profile:Render.profile};
+    if(map[route])map[route].call(Render,params);
+    const el=document.getElementById('page-'+route);
+    if(el)el.classList.add('active');
     window.scrollTo(0,0);
   }
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// RENDER
-// ══════════════════════════════════════════════════════════════════════════════
-const Render = {
-  dashboard() {
-    const visits = DB.getAll('visits');
-    const items = DB.getAll('inspection_items');
-    const mv = visits.filter(v=>v.date>=H.monthStart());
-    const mi = items.filter(i=>mv.find(v=>v.id===i.visit_id));
-    document.getElementById('stat-visits').textContent = mv.length;
-    document.getElementById('stat-items').textContent = mi.length;
-    const h = new Date().getHours();
-    const g = h<12?'Good morning':h<17?'Good afternoon':'Good evening';
-    document.getElementById('dash-greeting').textContent = `${g}, ${State.user.name.split(' ')[0]} · ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
-    const recent = [...visits].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
-    const c = document.getElementById('recent-visits');
-    c.innerHTML = recent.length ? recent.map(v=>this._visitCard(v)).join('') : '<p class="text-center text-gray-400 text-sm py-8">No visits yet. Tap + to start.</p>';
-  },
-  visitsList() {
-    const q = (document.getElementById('visits-search')?.value||'').toLowerCase();
-    const ch = document.getElementById('visits-filter-channel')?.value||'';
-    let visits = DB.getAll('visits');
-    if (q) visits = visits.filter(v=>H.custName(v.customer_id).toLowerCase().includes(q));
-    if (ch) visits = visits.filter(v=>{ const c=DB.getById('customers',v.customer_id); return c&&c.channel===ch; });
-    visits.sort((a,b)=>b.date.localeCompare(a.date));
-    const c = document.getElementById('visits-list');
-    c.innerHTML = visits.length ? visits.map(v=>this._visitCard(v)).join('') : '<p class="text-center text-gray-400 text-sm py-8">No visits found.</p>';
-  },
-  _visitCard(v) {
-    const cust = DB.getById('customers', v.customer_id);
-    const items = DB.getVisitItems(v.id);
-    const tn = cust ? H.typeName(cust.type_id) : '';
-    return `<div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-pointer active:opacity-80" onclick="Router.navigate('visit-detail',{visitId:'${v.id}'})">
-      <div class="flex justify-between items-start">
-        <div class="flex-1 min-w-0 mr-2">
-          <div class="font-semibold text-gray-800 truncate">${cust?cust.name:'Unknown'}</div>
-          <div class="text-xs text-gray-400 mt-0.5">${H.formatDate(v.date)} · W${v.week||'?'} · ${v.inspector_name||''}</div>
+const Render={
+  _visitCard(v){
+    const cust=DB.getById('customers',v.customer_id);
+    const items=DB.getVisitItems(v.id);
+    const tn=cust?H.typeName(cust.type_id):'';
+    return `<div class="card" style="cursor:pointer;" onclick="Router.navigate('visit-detail',{visitId:'${v.id}'})">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+        <div style="flex:1;min-width:0;margin-right:8px;">
+          <div style="font-weight:600;color:#1e293b;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cust?cust.name:'Unknown'}</div>
+          <div style="font-size:13px;color:#94a3b8;margin-top:2px;">${H.formatDate(v.date)} · W${v.week||'?'} · ${v.inspector_name||''}</div>
         </div>
-        <div class="flex flex-col items-end gap-1 shrink-0">
-          ${cust?`<span class="text-xs px-2 py-0.5 rounded-full font-medium ${H.channelColor(cust.channel)}">${cust.channel}</span>`:''}
-          ${tn?`<span class="text-xs px-2 py-0.5 rounded-full font-medium ${H.typeColor(tn)}">${tn}</span>`:''}
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">
+          ${cust?`<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;${H.channelBadge(cust.channel)}">${cust.channel}</span>`:''}
+          ${tn?`<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;${H.typeBadge(tn)}">${tn}</span>`:''}
         </div>
       </div>
-      <div class="flex items-center gap-2 mt-2">
-        <span class="text-xs text-gray-400 flex-1">${v.purpose||'No purpose noted'}</span>
-        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${items.length} item${items.length!==1?'s':''}</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;color:#64748b;flex:1;">${v.purpose||'No purpose noted'}</span>
+        <span style="font-size:13px;background:#f1f5f9;color:#475569;padding:3px 10px;border-radius:999px;">${items.length} item${items.length!==1?'s':''}</span>
       </div>
     </div>`;
   },
-  visitNew(params) {
-    document.getElementById('vf-id').value = params.editId||'';
-    document.getElementById('vf-date').value = H.today();
-    document.getElementById('vf-week').value = 'W' + H.isoWeek(H.today());
-    document.getElementById('vf-channel').value = '';
-    document.getElementById('vf-purpose').value = '';
-    document.getElementById('vf-notes').value = '';
-    document.getElementById('vf-customer-id').value = '';
+  dashboard(){
+    const visits=DB.getAll('visits');
+    const items=DB.getAll('inspection_items');
+    const mv=visits.filter(v=>v.date>=H.monthStart());
+    document.getElementById('stat-visits').textContent=mv.length;
+    document.getElementById('stat-items').textContent=items.filter(i=>mv.find(v=>v.id===i.visit_id)).length;
+    const h=new Date().getHours();
+    document.getElementById('dash-greeting').textContent=`${h<12?'Good morning':h<17?'Good afternoon':'Good evening'}, ${State.user.name.split(' ')[0]} · ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
+    const recent=[...visits].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+    document.getElementById('recent-visits').innerHTML=recent.length?recent.map(v=>this._visitCard(v)).join(''):'<p style="text-align:center;color:#94a3b8;padding:32px 0;font-size:15px;">No visits yet. Tap + to start.</p>';
+  },
+  visitsList(){
+    const q=(document.getElementById('visits-search')?.value||'').toLowerCase();
+    const ch=document.getElementById('visits-filter-channel')?.value||'';
+    let visits=DB.getAll('visits');
+    if(q)visits=visits.filter(v=>H.custName(v.customer_id).toLowerCase().includes(q));
+    if(ch)visits=visits.filter(v=>{const c=DB.getById('customers',v.customer_id);return c&&c.channel===ch;});
+    visits.sort((a,b)=>b.date.localeCompare(a.date));
+    document.getElementById('visits-list').innerHTML=visits.length?visits.map(v=>this._visitCard(v)).join(''):'<p style="text-align:center;color:#94a3b8;padding:32px 0;">No visits found.</p>';
+  },
+  visitNew(params){
+    document.getElementById('vf-id').value=params.editId||'';
+    document.getElementById('vf-date').value=H.today();
+    document.getElementById('vf-week').value='W'+H.isoWeek(H.today());
+    document.getElementById('vf-channel').value='';
+    document.getElementById('vf-purpose').value='';
+    document.getElementById('vf-notes').value='';
+    document.getElementById('vf-customer-id').value='';
     document.getElementById('vf-customer-selected').classList.add('hidden');
     document.getElementById('vf-customer-btn').classList.remove('hidden');
-    // Update week when date changes
-    document.getElementById('vf-date').oninput = () => {
-      const d = document.getElementById('vf-date').value;
-      if (d) document.getElementById('vf-week').value = 'W' + H.isoWeek(d);
-    };
-    if (params.editId) {
-      const v = DB.getById('visits', params.editId);
-      if (v) {
-        document.getElementById('vf-date').value = v.date;
-        document.getElementById('vf-week').value = 'W'+(v.week||H.isoWeek(v.date));
-        document.getElementById('vf-purpose').value = v.purpose||'';
-        document.getElementById('vf-notes').value = v.notes||'';
-        document.getElementById('vf-customer-id').value = v.customer_id;
-        const cust = DB.getById('customers', v.customer_id);
-        if (cust) UI.selectCustomerFromPicker(cust.id);
-      }
-    }
+    if(params.editId){const v=DB.getById('visits',params.editId);if(v){document.getElementById('vf-date').value=v.date;document.getElementById('vf-week').value='W'+(v.week||H.isoWeek(v.date));document.getElementById('vf-purpose').value=v.purpose||'';document.getElementById('vf-notes').value=v.notes||'';const c=DB.getById('customers',v.customer_id);if(c)UI.selectCustomer(c.id);}}
   },
-  visitDetail() {
-    const v = DB.getById('visits', State.currentVisitId);
-    if (!v) return;
-    const cust = DB.getById('customers', v.customer_id);
-    const tn = cust ? H.typeName(cust.type_id) : '';
-    document.getElementById('vd-info-card').innerHTML = `
-      <div class="flex justify-between items-start mb-3">
-        <div>
-          <div class="font-bold text-gray-800 text-base">${cust?cust.name:'Unknown'}</div>
-          <div class="text-xs text-gray-400">${cust?cust.city+', '+cust.state:''}</div>
-        </div>
-        <button onclick="Router.navigate('visit-new',{editId:'${v.id}'})" class="text-sm border border-gray-200 text-gray-500 rounded-lg px-3 py-1">Edit</button>
+  visitDetail(){
+    const v=DB.getById('visits',State.currentVisitId);if(!v)return;
+    const cust=DB.getById('customers',v.customer_id);
+    const tn=cust?H.typeName(cust.type_id):'';
+    document.getElementById('vd-info-card').innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+        <div><div style="font-weight:700;font-size:17px;color:#1e293b;">${cust?cust.name:'Unknown'}</div><div style="font-size:13px;color:#94a3b8;">${cust?cust.city+', '+cust.state:''}</div></div>
+        <button onclick="Router.navigate('visit-new',{editId:'${v.id}'})" style="font-size:14px;border:1px solid #e2e8f0;color:#64748b;border-radius:10px;padding:8px 14px;background:white;cursor:pointer;">Edit</button>
       </div>
-      <div class="grid grid-cols-3 gap-3 text-sm">
-        <div><div class="text-xs text-gray-400">Date</div><div class="font-medium">${H.formatDate(v.date)}</div></div>
-        <div><div class="text-xs text-gray-400">Week</div><div class="font-medium">W${v.week||H.isoWeek(v.date)}</div></div>
-        <div><div class="text-xs text-gray-400">Inspector</div><div class="font-medium text-xs">${v.inspector_name||'-'}</div></div>
-        <div><div class="text-xs text-gray-400">Channel</div><div>${cust?`<span class="text-xs px-2 py-0.5 rounded-full font-medium ${H.channelColor(cust.channel)}">${cust.channel}</span>`:'-'}</div></div>
-        <div><div class="text-xs text-gray-400">Type</div><div>${tn?`<span class="text-xs px-2 py-0.5 rounded-full font-medium ${H.typeColor(tn)}">${tn}</span>`:'-'}</div></div>
-        <div><div class="text-xs text-gray-400">Purpose</div><div class="font-medium text-xs">${v.purpose||'-'}</div></div>
-        ${v.notes?`<div class="col-span-3"><div class="text-xs text-gray-400">Notes</div><div class="text-sm">${v.notes}</div></div>`:''}
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:14px;">
+        <div><div style="color:#94a3b8;font-size:12px;">Date</div><div style="font-weight:500;">${H.formatDate(v.date)}</div></div>
+        <div><div style="color:#94a3b8;font-size:12px;">Week</div><div style="font-weight:500;">W${v.week||H.isoWeek(v.date)}</div></div>
+        <div><div style="color:#94a3b8;font-size:12px;">Inspector</div><div style="font-weight:500;font-size:12px;">${v.inspector_name||'-'}</div></div>
+        <div><div style="color:#94a3b8;font-size:12px;">Channel</div><div>${cust?`<span style="font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;${H.channelBadge(cust.channel)}">${cust.channel}</span>`:'-'}</div></div>
+        <div><div style="color:#94a3b8;font-size:12px;">Type</div><div>${tn?`<span style="font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;${H.typeBadge(tn)}">${tn}</span>`:'-'}</div></div>
+        <div><div style="color:#94a3b8;font-size:12px;">Purpose</div><div style="font-weight:500;font-size:12px;">${v.purpose||'-'}</div></div>
+        ${v.notes?`<div style="grid-column:1/-1;"><div style="color:#94a3b8;font-size:12px;">Notes</div><div style="font-size:14px;">${v.notes}</div></div>`:''}
       </div>`;
-    document.getElementById('vd-add-item').onclick = () => Router.navigate('inspection-new', {visitId: v.id});
-    const items = DB.getVisitItems(v.id);
-    const container = document.getElementById('vd-items-list');
-    const empty = document.getElementById('vd-empty-items');
-    if (!items.length) { container.innerHTML=''; empty.classList.remove('hidden'); return; }
+    document.getElementById('vd-add-item').onclick=()=>Router.navigate('inspection-new',{visitId:v.id});
+    const items=DB.getVisitItems(v.id);
+    const empty=document.getElementById('vd-empty');
+    if(!items.length){document.getElementById('vd-items-list').innerHTML='';empty.classList.remove('hidden');return;}
     empty.classList.add('hidden');
-    container.innerHTML = items.map(item => {
-      const photos = DB.getItemPhotos(item.id);
-      const cat = DB.getById('fruit_categories', item.category_id);
-      return `<div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <div class="flex justify-between items-start mb-2">
-          <div>
-            <div class="font-semibold text-gray-800">${H.prodName(item.product_id)||'Unknown product'}</div>
-            <div class="text-xs text-gray-400">${cat?cat.name:''} ${item.brand?'· '+item.brand:''}</div>
-          </div>
-          <div class="flex gap-1">
-            <button onclick="Router.navigate('inspection-new',{visitId:'${v.id}',itemId:'${item.id}'})" class="text-xs border border-gray-200 text-gray-500 px-2 py-1 rounded-lg">Edit</button>
-            <button onclick="Actions.deleteItem('${item.id}')" class="text-xs border border-red-200 text-red-400 px-2 py-1 rounded-lg">✕</button>
+    document.getElementById('vd-items-list').innerHTML=items.map(item=>{
+      const photos=DB.getItemPhotos(item.id);
+      const cat=DB.getById('fruit_categories',item.category_id);
+      return `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div><div style="font-weight:600;font-size:16px;color:#1e293b;">${H.prodName(item.product_id)}</div><div style="font-size:13px;color:#94a3b8;">${cat?cat.name:''} ${item.brand?'· '+item.brand:''}</div></div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="Router.navigate('inspection-new',{visitId:'${v.id}',itemId:'${item.id}'})" style="font-size:13px;border:1px solid #e2e8f0;color:#64748b;border-radius:8px;padding:6px 10px;background:white;cursor:pointer;">Edit</button>
+            <button onclick="Actions.deleteItem('${item.id}')" style="font-size:13px;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:6px 10px;background:white;cursor:pointer;">✕</button>
           </div>
         </div>
-        <div class="flex flex-wrap gap-1.5 mb-2">
-          ${item.condition?`<span class="text-xs px-2 py-1 rounded-full font-medium ${H.ratingColor(item.condition)}">Condition: ${item.condition}</span>`:''}
-          ${item.shelf_presentation?`<span class="text-xs px-2 py-1 rounded-full font-medium ${H.ratingColor(item.shelf_presentation)}">Shelf: ${item.shelf_presentation}</span>`:''}
-          ${item.ripeness_stage?`<span class="text-xs px-2 py-1 rounded-full bg-yellow-50 text-yellow-700">Stage: ${item.ripeness_stage}</span>`:''}
-          ${item.stock_level?`<span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Stock: ${item.stock_level}</span>`:''}
-          ${item.facings?`<span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Facings: ${item.facings}</span>`:''}
-          ${item.price_observed?`<span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">$${item.price_observed}</span>`:''}
-          ${item.competitor_present?`<span class="text-xs px-2 py-1 rounded-full bg-red-50 text-red-600">⚠ Competitor${item.competitor_notes?' — '+item.competitor_notes:''}</span>`:''}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+          ${item.condition?`<span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:${H.ratingBg(item.condition)};color:${H.ratingFg(item.condition)};">Condition: ${item.condition}</span>`:''}
+          ${item.shelf_presentation?`<span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:${H.ratingBg(item.shelf_presentation)};color:${H.ratingFg(item.shelf_presentation)};">Shelf: ${item.shelf_presentation}</span>`:''}
+          ${item.ripeness_stage?`<span style="font-size:12px;padding:4px 10px;border-radius:999px;background:#fefce8;color:#854d0e;">Stage: ${item.ripeness_stage}</span>`:''}
+          ${item.stock_level?`<span style="font-size:12px;padding:4px 10px;border-radius:999px;background:#f8fafc;color:#475569;">Stock: ${item.stock_level}</span>`:''}
+          ${item.facings?`<span style="font-size:12px;padding:4px 10px;border-radius:999px;background:#f8fafc;color:#475569;">Facings: ${item.facings}</span>`:''}
+          ${item.price_observed?`<span style="font-size:12px;padding:4px 10px;border-radius:999px;background:#f8fafc;color:#475569;">$${item.price_observed}</span>`:''}
+          ${item.competitor_present?`<span style="font-size:12px;padding:4px 10px;border-radius:999px;background:#fef2f2;color:#dc2626;">⚠ Competitor${item.competitor_notes?' — '+item.competitor_notes:''}</span>`:''}
         </div>
-        ${item.notes?`<div class="text-xs text-gray-500 italic mb-2">${item.notes}</div>`:''}
-        ${photos.length?`<div class="flex gap-2 flex-wrap">${photos.map(p=>`<img src="${p.data}" class="photo-thumb" onclick="UI.showPhoto('${p.data}')">`).join('')}</div>`:''}
+        ${item.notes?`<div style="font-size:13px;color:#64748b;font-style:italic;margin-bottom:8px;">${item.notes}</div>`:''}
+        ${photos.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;">${photos.map(p=>`<img src="${p.data}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;cursor:pointer;" onclick="UI.showPhoto('${p.id}')" data-src="${p.id}">`).join('')}</div>`:''}
       </div>`;
     }).join('');
   },
-  inspectionNew(params) {
-    State.pendingPhotos = [];
-    document.getElementById('if-photos-preview').innerHTML = '';
-    document.getElementById('if-photo-count').textContent = '';
-    document.getElementById('if-id').value = params.itemId||'';
-    document.getElementById('if-visit-id').value = State.currentVisitId;
-    document.getElementById('if-competitor-check').checked = false;
+  inspectionNew(params){
+    State.pendingPhotos=[];
+    document.getElementById('if-photos-preview').innerHTML='';
+    document.getElementById('if-photo-count').textContent='';
+    document.getElementById('if-id').value=params.itemId||'';
+    document.getElementById('if-visit-id').value=State.currentVisitId;
+    document.getElementById('if-competitor-check').checked=false;
     document.getElementById('if-competitor-section').classList.add('hidden');
-    document.getElementById('if-competitor-notes').value = '';
-    document.getElementById('if-notes').value = '';
-    document.getElementById('if-price').value = '';
-    document.getElementById('if-facings').value = '';
-    document.getElementById('if-ripeness').value = '';
-    document.getElementById('if-stock').value = '';
-    document.getElementById('if-brand').value = '';
-    ['condition','shelf'].forEach(r => {
-      document.querySelectorAll(`#rating-${r} .rating-btn`).forEach(b => b.classList.remove('selected','ring-2','ring-offset-1','ring-red-400','ring-amber-400','ring-blue-400','ring-green-400'));
-    });
-    document.getElementById('if-condition').value = '';
-    document.getElementById('if-shelf').value = '';
-    const cats = DB.getAll('fruit_categories').filter(c=>c.active);
-    const catSel = document.getElementById('if-category');
-    catSel.innerHTML = '<option value="">Select...</option>' + cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-    document.getElementById('if-product').innerHTML = '<option value="">Select category first</option>';
-    if (params.itemId) {
-      const item = DB.getById('inspection_items', params.itemId);
-      if (item) {
-        catSel.value = item.category_id;
-        UI.filterProducts();
-        document.getElementById('if-product').value = item.product_id;
-        document.getElementById('if-brand').value = item.brand||'';
-        if (item.condition) UI.selectRating('condition', item.condition);
-        if (item.shelf_presentation) UI.selectRating('shelf', item.shelf_presentation);
-        document.getElementById('if-ripeness').value = item.ripeness_stage||'';
-        document.getElementById('if-stock').value = item.stock_level||'';
-        document.getElementById('if-facings').value = item.facings||'';
-        document.getElementById('if-price').value = item.price_observed||'';
-        document.getElementById('if-notes').value = item.notes||'';
-        if (item.competitor_present) {
-          document.getElementById('if-competitor-check').checked = true;
-          document.getElementById('if-competitor-section').classList.remove('hidden');
-          document.getElementById('if-competitor-notes').value = item.competitor_notes||'';
-        }
-        DB.getItemPhotos(item.id).forEach(p => {
-          State.pendingPhotos.push({existing:true, id:p.id, data:p.data});
-          UI.addPhotoThumb(p.data, p.id);
-        });
+    document.getElementById('if-competitor-notes').value='';
+    document.getElementById('if-notes').value='';
+    document.getElementById('if-price').value='';
+    document.getElementById('if-facings').value='';
+    document.getElementById('if-ripeness').value='';
+    document.getElementById('if-stock').value='';
+    document.getElementById('if-brand').value='';
+    document.getElementById('if-condition').value='';
+    document.getElementById('if-shelf').value='';
+    ['condition','shelf'].forEach(r=>document.querySelectorAll(`#rating-${r} .rating-btn`).forEach(b=>b.style.outline='none'));
+    const cats=DB.getAll('fruit_categories').filter(c=>c.active);
+    const catSel=document.getElementById('if-category');
+    catSel.innerHTML='<option value="">Select...</option>'+cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    document.getElementById('if-product').innerHTML='<option value="">Select category first</option>';
+    if(params.itemId){
+      const item=DB.getById('inspection_items',params.itemId);
+      if(item){
+        catSel.value=item.category_id;UI.filterProducts();
+        document.getElementById('if-product').value=item.product_id;
+        document.getElementById('if-brand').value=item.brand||'';
+        if(item.condition)UI.selectRating('condition',item.condition);
+        if(item.shelf_presentation)UI.selectRating('shelf',item.shelf_presentation);
+        document.getElementById('if-ripeness').value=item.ripeness_stage||'';
+        document.getElementById('if-stock').value=item.stock_level||'';
+        document.getElementById('if-facings').value=item.facings||'';
+        document.getElementById('if-price').value=item.price_observed||'';
+        document.getElementById('if-notes').value=item.notes||'';
+        if(item.competitor_present){document.getElementById('if-competitor-check').checked=true;document.getElementById('if-competitor-section').classList.remove('hidden');document.getElementById('if-competitor-notes').value=item.competitor_notes||'';}
+        DB.getItemPhotos(item.id).forEach(p=>{State.pendingPhotos.push({id:p.id,data:p.data,existing:true});UI.addPhotoThumb(p.data,p.id);});
       }
     }
   },
-  admin() { Admin.showTable(State.adminTable); },
-  profile() {
-    const u = State.user;
-    document.getElementById('profile-avatar').textContent = H.initials(u.name);
-    document.getElementById('profile-name').textContent = u.name;
-    document.getElementById('profile-email').textContent = u.id;
-    document.getElementById('profile-role').textContent = u.role;
+  admin(){Admin.showTable(State.adminTable);},
+  profile(){
+    const u=State.user;
+    document.getElementById('profile-avatar').textContent=H.initials(u.name);
+    document.getElementById('profile-name').textContent=u.name;
+    document.getElementById('profile-email').textContent=u.id;
+    document.getElementById('profile-role').textContent=u.role;
   }
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// UI
-// ══════════════════════════════════════════════════════════════════════════════
-const UI = {
-  openCustomerPicker() {
-    document.getElementById('customer-picker-search').value = '';
+const UI={
+  openCustomerPicker(){
+    document.getElementById('customer-picker-search').value='';
     this.filterCustomerPicker();
     document.getElementById('customer-picker').classList.remove('hidden');
-    setTimeout(() => document.getElementById('customer-picker-search').focus(), 100);
+    setTimeout(()=>document.getElementById('customer-picker-search').focus(),150);
   },
-  closeCustomerPicker() {
-    document.getElementById('customer-picker').classList.add('hidden');
-  },
-  filterCustomerPicker() {
-    const q = document.getElementById('customer-picker-search').value.toLowerCase();
-    const customers = DB.getAll('customers').filter(c => c.active);
-    const results = q
-      ? customers.filter(c =>
-          c.name.toLowerCase().includes(q) ||
-          (c.city||'').toLowerCase().includes(q) ||
-          (c.account_number||'').toLowerCase().includes(q))
-      : customers;
-    const typeColors = {'Current Customer':'#16a34a','Potential Customer':'#d97706','Competitor':'#dc2626','Other':'#6b7280'};
-    const list = document.getElementById('customer-picker-list');
-    if (!results.length) {
-      list.innerHTML = '<div style="padding:2rem; text-align:center; color:#94a3b8; font-size:1rem;">No customers found</div>';
-      return;
-    }
-    list.innerHTML = results.map(c => {
-      const tn = H.typeName(c.type_id);
-      const tc = typeColors[tn] || '#6b7280';
-      return `<div onclick="UI.selectCustomerFromPicker('${c.id}')"
-        style="padding:1rem 1.25rem; border-bottom:1px solid #f1f5f9; cursor:pointer; display:flex; align-items:center; gap:0.75rem; active:background:#f8fafc;">
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:600; font-size:1.05rem; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</div>
-          <div style="font-size:0.85rem; color:#64748b; margin-top:2px;">${c.city||''}, ${c.state||''} · ${c.channel||''}</div>
+  closeCustomerPicker(){document.getElementById('customer-picker').classList.add('hidden');},
+  filterCustomerPicker(){
+    const q=document.getElementById('customer-picker-search').value.toLowerCase();
+    const all=DB.getAll('customers').filter(c=>c.active);
+    const results=q?all.filter(c=>c.name.toLowerCase().includes(q)||(c.city||'').toLowerCase().includes(q)||(c.account_number||'').toLowerCase().includes(q)):all;
+    const typeColors={'Current Customer':'#16a34a','Potential Customer':'#d97706','Competitor':'#dc2626','Other':'#64748b'};
+    document.getElementById('customer-picker-list').innerHTML=results.length?results.map(c=>{
+      const tn=H.typeName(c.type_id);const tc=typeColors[tn]||'#64748b';
+      return `<div onclick="UI.selectCustomer('${c.id}')" style="padding:14px 16px;border-bottom:1px solid #f8fafc;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:16px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name}</div>
+          <div style="font-size:13px;color:#64748b;margin-top:2px;">${c.city||''}, ${c.state||''} · ${c.channel||''}</div>
         </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; shrink:0;">
-          <span style="font-size:0.75rem; font-weight:600; color:${tc}; background:${tc}18; padding:2px 8px; border-radius:999px;">${tn}</span>
-          ${c.account_number ? `<span style="font-size:0.75rem; color:#94a3b8;">${c.account_number}</span>` : ''}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">
+          <span style="font-size:12px;font-weight:600;color:${tc};background:${tc}18;padding:2px 8px;border-radius:999px;">${tn}</span>
+          ${c.account_number?`<span style="font-size:11px;color:#94a3b8;">${c.account_number}</span>`:''}
         </div>
       </div>`;
-    }).join('');
+    }).join(''):'<div style="padding:32px;text-align:center;color:#94a3b8;font-size:15px;">No customers found</div>';
   },
-  selectCustomerFromPicker(id) {
-    const c = DB.getById('customers', id);
-    if (!c) return;
-    document.getElementById('vf-customer-id').value = c.id;
-    document.getElementById('vf-customer-name').textContent = c.name;
-    document.getElementById('vf-customer-sub').textContent = c.city + ', ' + c.state + ' · ' + c.channel;
-    document.getElementById('vf-channel').value = c.channel;
+  selectCustomer(id){
+    const c=DB.getById('customers',id);if(!c)return;
+    document.getElementById('vf-customer-id').value=c.id;
+    document.getElementById('vf-customer-name').textContent=c.name;
+    document.getElementById('vf-customer-sub').textContent=c.city+', '+c.state+' · '+c.channel;
+    document.getElementById('vf-channel').value=c.channel;
     document.getElementById('vf-customer-btn').classList.add('hidden');
     document.getElementById('vf-customer-selected').classList.remove('hidden');
     this.closeCustomerPicker();
   },
-  clearCustomer() {
-    document.getElementById('vf-customer-id').value = '';
+  clearCustomer(){
+    document.getElementById('vf-customer-id').value='';
     document.getElementById('vf-customer-selected').classList.add('hidden');
     document.getElementById('vf-customer-btn').classList.remove('hidden');
-    document.getElementById('vf-channel').value = '';
+    document.getElementById('vf-channel').value='';
   },
-  filterProducts() {
-    const catId = document.getElementById('if-category').value;
-    const prods = DB.getAll('products').filter(p=>p.active&&p.category_id===catId);
-    const sel = document.getElementById('if-product');
-    sel.innerHTML = '<option value="">Select product...</option>' + prods.map(p=>`<option value="${p.id}" data-brand="${p.brand}">${p.name} — ${p.brand}</option>`).join('');
-    document.getElementById('if-brand').value = '';
+  updateWeek(){const d=document.getElementById('vf-date').value;if(d)document.getElementById('vf-week').value='W'+H.isoWeek(d);},
+  filterProducts(){
+    const catId=document.getElementById('if-category').value;
+    const prods=DB.getAll('products').filter(p=>p.active&&p.category_id===catId);
+    document.getElementById('if-product').innerHTML='<option value="">Select product...</option>'+prods.map(p=>`<option value="${p.id}" data-brand="${p.brand}">${p.name} — ${p.brand}</option>`).join('');
+    document.getElementById('if-brand').value='';
   },
-  fillBrand() {
-    const sel = document.getElementById('if-product');
-    const opt = sel.options[sel.selectedIndex];
-    if (opt && opt.dataset.brand) document.getElementById('if-brand').value = opt.dataset.brand;
+  fillBrand(){const sel=document.getElementById('if-product');const opt=sel.options[sel.selectedIndex];if(opt&&opt.dataset.brand)document.getElementById('if-brand').value=opt.dataset.brand;},
+  selectRating(type,val){
+    const gid=type==='condition'?'rating-condition':'rating-shelf';
+    const iid=type==='condition'?'if-condition':'if-shelf';
+    const outlines={Poor:'3px solid #dc2626',Fair:'3px solid #d97706',Good:'3px solid #2563eb',Excellent:'3px solid #16a34a'};
+    document.querySelectorAll(`#${gid} .rating-btn`).forEach(b=>{b.style.outline=b.dataset.val===val?outlines[val]:'none';b.style.transform=b.dataset.val===val?'scale(1.05)':'scale(1)';});
+    document.getElementById(iid).value=val;
   },
-  selectRating(type, val) {
-    const gid = type==='condition'?'rating-condition':'rating-shelf';
-    const iid = type==='condition'?'if-condition':'if-shelf';
-    const colors = {Poor:'ring-red-400',Fair:'ring-amber-400',Good:'ring-blue-400',Excellent:'ring-green-400'};
-    document.querySelectorAll(`#${gid} .rating-btn`).forEach(b=>{
-      b.classList.remove('selected','ring-2','ring-offset-1','ring-red-400','ring-amber-400','ring-blue-400','ring-green-400');
-      if (b.dataset.val===val) b.classList.add('selected','ring-2','ring-offset-1',colors[val]);
-    });
-    document.getElementById(iid).value = val;
+  toggleCompetitor(){document.getElementById('if-competitor-section').classList.toggle('hidden',!document.getElementById('if-competitor-check').checked);},
+  async addPhotos(event){
+    for(const file of Array.from(event.target.files)){
+      try{const data=await H.compressImage(file);const id=DB.genId();State.pendingPhotos.push({id,data,isNew:true});this.addPhotoThumb(data,id);this.updatePhotoCount();}
+      catch(e){this.toast('Could not add photo');}
+    }
+    event.target.value='';
   },
-  toggleCompetitor() {
-    document.getElementById('if-competitor-section').classList.toggle('hidden', !document.getElementById('if-competitor-check').checked);
+  addPhotoThumb(data,id){
+    const div=document.createElement('div');div.id='thumb-'+id;div.style.cssText='position:relative;display:inline-block;';
+    div.innerHTML=`<img src="${data}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;cursor:pointer;" onclick="UI.showPhoto('${id}')">
+      <button type="button" onclick="UI.removePhoto('${id}')" style="position:absolute;top:-6px;right:-6px;width:24px;height:24px;background:#ef4444;color:white;border-radius:50%;font-size:13px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>`;
+    document.getElementById('if-photos-preview').appendChild(div);
+    // Store data for fullscreen
+    div.dataset.photoData=data;
   },
-  async addPhotos(event) {
-    const files = Array.from(event.target.files);
-    for (const file of files) {
-      try {
-        const data = await H.compressImage(file);
-        const id = DB.genId();
-        State.pendingPhotos.push({id, data, isNew: true});
-        this.addPhotoThumb(data, id);
-        UI.updatePhotoCount();
-      } catch(e) {
-        UI.toast('⚠ Could not add photo');
+  removePhoto(id){State.pendingPhotos=State.pendingPhotos.filter(p=>p.id!==id);const el=document.getElementById('thumb-'+id);if(el)el.remove();this.updatePhotoCount();},
+  updatePhotoCount(){const n=State.pendingPhotos.length;document.getElementById('if-photo-count').textContent=n?n+' photo'+(n!==1?'s':'')+' attached':'';},
+  showPhoto(idOrData){
+    let src=idOrData;
+    if(!idOrData.startsWith('data:')){
+      // Could be a photo id from inspection items or a thumb id
+      const thumb=document.getElementById('thumb-'+idOrData);
+      if(thumb){src=thumb.dataset.photoData;}
+      else{
+        // look in DB
+        const allPhotos=DB.get('photos');
+        const p=allPhotos.find(x=>x.id===idOrData);
+        if(p)src=p.data;
       }
     }
-    event.target.value = '';
-  },
-  addPhotoThumb(data, id) {
-    const div = document.createElement('div');
-    div.id = 'thumb-'+id;
-    div.className = 'relative inline-block';
-    div.innerHTML = `<img src="${data}" class="photo-thumb" onclick="UI.showPhoto('${id}_full')">
-      <button type="button" onclick="UI.removePhoto('${id}')" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;background:#ef4444;color:white;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center;">✕</button>`;
-    // Store full data in a hidden span for fullscreen view
-    const sp = document.createElement('span');
-    sp.id = id+'_full'; sp.dataset.src = data; sp.style.display='none';
-    div.appendChild(sp);
-    document.getElementById('if-photos-preview').appendChild(div);
-  },
-  removePhoto(id) {
-    State.pendingPhotos = State.pendingPhotos.filter(p=>p.id!==id);
-    const el = document.getElementById('thumb-'+id);
-    if (el) el.remove();
-    UI.updatePhotoCount();
-  },
-  updatePhotoCount() {
-    const n = State.pendingPhotos.length;
-    document.getElementById('if-photo-count').textContent = n ? `${n} photo${n!==1?'s':''} attached` : '';
-  },
-  showPhoto(data) {
-    // data can be a base64 string directly or a span id
-    let src = data;
-    if (!data.startsWith('data:')) {
-      const sp = document.getElementById(data);
-      src = sp ? sp.dataset.src : data;
-    }
-    document.getElementById('photo-fs-img').src = src;
+    document.getElementById('photo-fs-img').src=src;
     document.getElementById('photo-fs').classList.remove('hidden');
   },
-  toast(msg, ms=2500) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'), ms);
-  },
-  openModal(title, body) {
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-body').innerHTML = body;
-    document.getElementById('modal').classList.remove('hidden');
-  },
-  closeModal() { document.getElementById('modal').classList.add('hidden'); }
+  toast(msg,ms=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),ms);},
+  openModal(title,body){document.getElementById('modal-title').textContent=title;document.getElementById('modal-body').innerHTML=body;document.getElementById('modal').classList.remove('hidden');},
+  closeModal(){document.getElementById('modal').classList.add('hidden');}
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ACTIONS
-// ══════════════════════════════════════════════════════════════════════════════
-const Actions = {
-  login(userId) {
-    const user = DB.getById('users', userId);
-    if (!user) return;
-    State.user = user;
-    localStorage.setItem('fna_session', userId);
-    document.getElementById('login-screen').style.display = 'none';
+const Actions={
+  login(userId){
+    const user=DB.getById('users',userId);if(!user)return;
+    State.user=user;
+    try{localStorage.setItem('fna_session',userId);}catch(e){}
+    document.getElementById('login-screen').style.display='none';
     document.getElementById('app-screen').classList.remove('hidden');
-    document.getElementById('user-avatar').textContent = H.initials(user.name);
+    document.getElementById('user-avatar').textContent=H.initials(user.name);
     Router.navigate('dashboard');
   },
-  logout() {
-    State.user = null;
-    localStorage.removeItem('fna_session');
+  logout(){
+    State.user=null;
+    try{localStorage.removeItem('fna_session');}catch(e){}
     document.getElementById('app-screen').classList.add('hidden');
-    document.getElementById('login-screen').style.display = '';
-    State.history = [];
+    document.getElementById('login-screen').style.display='';
+    State.history=[];
   },
-  saveVisit(e) {
+  saveVisit(e){
     e.preventDefault();
-    const custId = document.getElementById('vf-customer-id').value;
-    if (!custId) { UI.toast('⚠ Please select a customer'); return; }
-    const dateVal = document.getElementById('vf-date').value;
-    const id = document.getElementById('vf-id').value || DB.genId();
-    const visit = {
-      id, customer_id: custId, date: dateVal,
-      week: H.isoWeek(dateVal),
-      purpose: document.getElementById('vf-purpose').value,
-      notes: document.getElementById('vf-notes').value,
-      inspector_id: State.user.id,
-      inspector_name: State.user.name,
-      created_at: new Date().toISOString()
-    };
-    DB.save('visits', visit);
-    UI.toast('✓ Visit saved');
-    State.currentVisitId = id;
-    Router.navigate('visit-detail', {visitId: id});
+    const custId=document.getElementById('vf-customer-id').value;
+    if(!custId){UI.toast('Please select a customer');return;}
+    const dateVal=document.getElementById('vf-date').value;
+    const id=document.getElementById('vf-id').value||DB.genId();
+    DB.save('visits',{id,customer_id:custId,date:dateVal,week:H.isoWeek(dateVal),purpose:document.getElementById('vf-purpose').value,notes:document.getElementById('vf-notes').value,inspector_id:State.user.id,inspector_name:State.user.name,created_at:new Date().toISOString()});
+    UI.toast('Visit saved');State.currentVisitId=id;Router.navigate('visit-detail',{visitId:id});
   },
-  saveInspection(e) {
+  saveInspection(e){
     e.preventDefault();
-    const condition = document.getElementById('if-condition').value;
-    const shelf = document.getElementById('if-shelf').value;
-    if (!condition) { UI.toast('⚠ Please rate Condition / Quality'); return; }
-    if (!shelf) { UI.toast('⚠ Please rate Shelf Presentation'); return; }
-    const id = document.getElementById('if-id').value || DB.genId();
-    const visitId = document.getElementById('if-visit-id').value;
-    const item = {
-      id, visit_id: visitId,
-      category_id: document.getElementById('if-category').value,
-      product_id: document.getElementById('if-product').value,
-      brand: document.getElementById('if-brand').value,
-      condition, shelf_presentation: shelf,
-      ripeness_stage: document.getElementById('if-ripeness').value,
-      stock_level: document.getElementById('if-stock').value,
-      facings: document.getElementById('if-facings').value,
-      price_observed: document.getElementById('if-price').value,
-      competitor_present: document.getElementById('if-competitor-check').checked,
-      competitor_notes: document.getElementById('if-competitor-notes').value,
-      notes: document.getElementById('if-notes').value,
-      created_at: new Date().toISOString()
-    };
-    DB.save('inspection_items', item);
-    // Save only new photos
-    State.pendingPhotos.filter(p=>p.isNew).forEach(p => {
-      DB.savePhoto({id: p.id, item_id: id, data: p.data, created_at: new Date().toISOString()});
-    });
-    UI.toast('✓ Item saved');
-    Router.navigate('visit-detail', {visitId});
+    const condition=document.getElementById('if-condition').value;
+    const shelf=document.getElementById('if-shelf').value;
+    if(!condition){UI.toast('Please rate Condition / Quality');return;}
+    if(!shelf){UI.toast('Please rate Shelf Presentation');return;}
+    const id=document.getElementById('if-id').value||DB.genId();
+    const visitId=document.getElementById('if-visit-id').value;
+    DB.save('inspection_items',{id,visit_id:visitId,category_id:document.getElementById('if-category').value,product_id:document.getElementById('if-product').value,brand:document.getElementById('if-brand').value,condition,shelf_presentation:shelf,ripeness_stage:document.getElementById('if-ripeness').value,stock_level:document.getElementById('if-stock').value,facings:document.getElementById('if-facings').value,price_observed:document.getElementById('if-price').value,competitor_present:document.getElementById('if-competitor-check').checked,competitor_notes:document.getElementById('if-competitor-notes').value,notes:document.getElementById('if-notes').value,created_at:new Date().toISOString()});
+    State.pendingPhotos.filter(p=>p.isNew).forEach(p=>DB.savePhoto({id:p.id,item_id:id,data:p.data,created_at:new Date().toISOString()}));
+    UI.toast('Item saved');Router.navigate('visit-detail',{visitId});
   },
-  deleteItem(itemId) {
-    if (!confirm('Remove this inspection item?')) return;
-    DB.delete('inspection_items', itemId);
+  deleteItem(itemId){
+    if(!confirm('Remove this inspection item?'))return;
     DB.getItemPhotos(itemId).forEach(p=>DB.deletePhoto(p.id));
-    UI.toast('Item removed');
-    Render.visitDetail();
+    DB.delete('inspection_items',itemId);
+    UI.toast('Item removed');Render.visitDetail();
   }
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ADMIN
-// ══════════════════════════════════════════════════════════════════════════════
-const Admin = {
-  showTable(table) {
-    State.adminTable = table;
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active-tab', b.dataset.tab===table));
-    if (table === 'visits') { this.showVisits(); return; }
-    const records = DB.getAll(table);
-    const def = {
-      customers:{cols:['name','channel','city','state'],label:'Customer'},
-      products:{cols:['name','brand','category_id'],label:'Product'},
-      fruit_categories:{cols:['name'],label:'Category'},
-      users:{cols:['id','name','role'],label:'User'},
-      customer_types:{cols:['name'],label:'Type'}
-    }[table];
-    document.getElementById('admin-table-content').innerHTML = `
-      <div class="flex gap-2 mb-4">
-        <button onclick="Admin.openAddModal('${table}')" class="flex-1 bg-green-600 text-white text-sm rounded-xl py-3 font-semibold">+ Add ${def.label}</button>
-        <label class="flex-1 bg-white border border-gray-200 text-gray-600 text-sm rounded-xl py-3 font-semibold text-center cursor-pointer">
-          📥 Import CSV<input type="file" accept=".csv" class="hidden" onchange="Admin.importCSV(event,'${table}')">
+const Admin={
+  showTable(table){
+    State.adminTable=table;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active-tab',b.dataset.tab===table));
+    if(table==='visits'){this.showVisits();return;}
+    const records=DB.getAll(table);
+    const defs={customers:{label:'Customer',cols:['name','channel','city']},products:{label:'Product',cols:['name','brand']},fruit_categories:{label:'Category',cols:['name']},users:{label:'User',cols:['name','role']},customer_types:{label:'Type',cols:['name']}};
+    const def=defs[table];
+    document.getElementById('admin-content').innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <button onclick="Admin.openForm('${table}',null)" style="background:#16a34a;color:white;font-weight:700;border-radius:12px;padding:14px;font-size:16px;border:none;cursor:pointer;">+ Add ${def.label}</button>
+        <label style="background:white;border:1px solid #e2e8f0;color:#374151;font-weight:600;border-radius:12px;padding:14px;font-size:16px;text-align:center;cursor:pointer;">
+          📥 Import CSV<input type="file" accept=".csv" style="display:none;" onchange="Admin.importCSV(event,'${table}')">
         </label>
       </div>
-      <div class="space-y-2">${records.map(r=>this._row(r,def.cols,table)).join('')||'<p class="text-center text-gray-400 text-sm py-6">No records. Add one above.</p>'}</div>`;
+      <div>${records.map(r=>this._row(r,def.cols,table)).join('')||'<p style="text-align:center;color:#94a3b8;padding:32px 0;">No records yet.</p>'}</div>`;
   },
-  _row(r, cols, table) {
-    const off = r.active===false;
-    return `<div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 ${off?'opacity-50':''}">
-      <div class="flex-1 min-w-0">
-        <div class="font-medium text-sm text-gray-800 truncate">${r.name||r.id}</div>
-        <div class="text-xs text-gray-400 truncate">${cols.slice(1).map(c=>r[c]||'').filter(Boolean).join(' · ')}</div>
+  _row(r,cols,table){
+    const off=r.active===false;
+    return `<div style="display:flex;align-items:center;gap:8px;background:white;border-radius:12px;padding:12px 14px;border:1px solid #f1f5f9;margin-bottom:8px;${off?'opacity:0.5':''}">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:500;font-size:15px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name||r.id}</div>
+        <div style="font-size:13px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cols.slice(1).map(c=>r[c]||'').filter(Boolean).join(' · ')}</div>
       </div>
-      <button onclick="Admin.openEditModal('${table}','${r.id}')" class="text-xs border border-gray-200 text-gray-500 px-2 py-1 rounded-lg shrink-0">Edit</button>
-      <button onclick="Admin.toggleActive('${table}','${r.id}')" class="text-xs border ${off?'border-green-200 text-green-600':'border-red-200 text-red-400'} px-2 py-1 rounded-lg shrink-0">${off?'On':'Off'}</button>
+      <button onclick="Admin.openForm('${table}','${r.id}')" style="font-size:13px;border:1px solid #e2e8f0;color:#64748b;border-radius:8px;padding:8px 12px;background:white;cursor:pointer;flex-shrink:0;">Edit</button>
+      <button onclick="Admin.toggleActive('${table}','${r.id}')" style="font-size:13px;border:1px solid ${off?'#bbf7d0':'#fecaca'};color:${off?'#16a34a':'#dc2626'};border-radius:8px;padding:8px 12px;background:white;cursor:pointer;flex-shrink:0;">${off?'On':'Off'}</button>
     </div>`;
   },
-  toggleActive(t, id) { DB.toggleActive(t, id); this.showTable(t); },
-  openAddModal(t) { this._form(t, null); },
-  openEditModal(t, id) { this._form(t, DB.getById(t, id)); },
-  _form(table, rec) {
-    const isEdit = !!rec;
-    UI.openModal((isEdit?'Edit':'Add')+' Record', `
-      <form onsubmit="Admin.save(event,'${table}')" class="space-y-3">
-        <input type="hidden" id="af-id" value="${rec?rec.id:''}">
-        ${this._fields(table, rec||{})}
-        <button type="submit" class="w-full bg-green-600 text-white font-semibold rounded-xl py-3">Save</button>
-      </form>`);
+  showVisits(){
+    const visits=DB.getAll('visits').sort((a,b)=>b.date.localeCompare(a.date));
+    document.getElementById('admin-content').innerHTML=visits.length?visits.map(v=>{
+      const cust=DB.getById('customers',v.customer_id);
+      const items=DB.getVisitItems(v.id);
+      return `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+          <div style="flex:1;min-width:0;margin-right:8px;">
+            <div style="font-weight:600;font-size:15px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cust?cust.name:'Unknown'}</div>
+            <div style="font-size:13px;color:#94a3b8;margin-top:2px;">${H.formatDate(v.date)} · W${v.week||''} · ${v.inspector_name||''}</div>
+          </div>
+          ${cust?`<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;${H.channelBadge(cust.channel)};flex-shrink:0;">${cust.channel}</span>`:''}
+        </div>
+        <div style="font-size:14px;color:#64748b;margin-bottom:12px;">${v.purpose||'No purpose'} · <strong>${items.length} item${items.length!==1?'s':''}</strong></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <button onclick="Admin.viewVisitItems('${v.id}')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#374151;font-size:14px;font-weight:600;border-radius:10px;padding:10px;cursor:pointer;">👁 Items</button>
+          <button onclick="Router.navigate('visit-detail',{visitId:'${v.id}'})" style="background:#eff6ff;border:1px solid #bfdbfe;color:#2563eb;font-size:14px;font-weight:600;border-radius:10px;padding:10px;cursor:pointer;">✏️ Edit</button>
+          <button onclick="Admin.deleteVisit('${v.id}')" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:14px;font-weight:600;border-radius:10px;padding:10px;cursor:pointer;">🗑 Delete</button>
+        </div>
+      </div>`;
+    }).join(''):'<p style="text-align:center;color:#94a3b8;padding:32px 0;">No visits recorded yet.</p>';
   },
-  _fields(table, v) {
-    const tf = (id,lbl,val,req) => `<div><div class="section-label">${lbl}${req?' *':''}</div><input ${req?'required':''} id="af-${id}" value="${val||''}" class="form-input text-sm" type="text"></div>`;
-    const sf = (id,lbl,opts,val) => `<div><div class="section-label">${lbl}</div><select id="af-${id}" class="form-input text-sm">${opts.map(o=>`<option value="${o.v||o}" ${(val===(o.v||o))?'selected':''}>${o.l||o}</option>`).join('')}</select></div>`;
-    if (table==='customers') return [tf('name','Customer Name',v.name,true),tf('account_number','Account Number',v.account_number),sf('type_id','Type',DB.getAll('customer_types').map(t=>({v:t.id,l:t.name})),v.type_id),sf('channel','Channel',['Retail','Wholesale'],v.channel||'Retail'),tf('address','Address',v.address),tf('city','City',v.city),tf('state','State',v.state),tf('region','Region',v.region)].join('');
-    if (table==='products') return [tf('name','Product Name',v.name,true),tf('brand','Brand',v.brand),sf('category_id','Category',DB.getAll('fruit_categories').filter(c=>c.active).map(c=>({v:c.id,l:c.name})),v.category_id)].join('');
-    if (table==='fruit_categories') return tf('name','Category Name',v.name,true);
-    if (table==='users') return [tf('id','Email (User ID)',v.id,true),tf('name','Full Name',v.name,true),sf('role','Role',['Admin','Team Member'],v.role||'Team Member')].join('');
-    if (table==='
+  deleteVisit(visitId){
+    const v=DB.getById('visits',visitId);
+    const cust=v?DB.getById('customers',v.customer_id):null;
+    const items=DB.getVisitItems(visitId);
+    if(!confirm(`Delete visit to ${cust?cust.name:'this customer'} on ${v?H.formatDate(v.date):''}?\n\nThis will also delete ${items.length} inspection item${items.length!==1?'s':''} and all photos.`))return;
+    items.forEach(item=>{DB.getItemPhotos(item.id).forEach(p=>DB.deletePhoto(p.id));DB.delete('inspection_items',item.id);});
+    DB.delete('visits',visitId);
+    UI.toast('Visit deleted');this.showVisits();
+  },
+  viewVisitItems(visitId){
+    const v=DB.getById('visits',visitId);
+    const cust=v?DB.getById('customers',v.customer_id):null;
+    const items=DB.getVisitItems(visitId);
+    if(!items.length){UI.toast('No inspection items on this visit');return;}
+    const body=`<div style="font-size:13px;color:#64748b;margin-bottom:14px;">${H.formatDate(v.date)} · ${cust?cust.name:''}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${items.map(item=>{
+          const cat=DB.getById('fruit_categories',item.category_id);
+          const photos=DB.getItemPhotos(item.id);
+          return `<div style="border:1px solid #e2e8f0;border-radius:12px;padding:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+              <div><div style="font-weight:600;font-size:15px;color:#1e293b;">${H.prodName(item.product_id)}</div><div style="font-size:12px;color:#94a3b8;">${cat?cat.name:''} · ${item.brand||''}</div></div>
+              <button onclick="Admin.deleteItem('${item.id}','${visitId}')" style="color:#ef4444;font-size:18px;background:none;border:none;cursor:pointer;padding:0 4px;">🗑</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;">
+              ${item.condition?`<span style="font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:${H.ratingBg(item.condition)};color:${H.ratingFg(item.condition)};">${item.condition}</span>`:''}
+              ${item.shelf_presentation?`<span style="font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:${H.ratingBg(item.shelf_presentation)};color:${H.ratingFg(item.shelf_presentation)};">Shelf: ${item.shelf_presentation}</span>`:''}
+              ${item.stock_level?`<span style="font-size:12px;padding:3px 8px;border-radius:999px;background:#f8fafc;color:#475569;">${item.stock_level}</span>`:''}
+              ${item.price_observed?`<span style="font-size:12px;padding:3px 8px;border-radius:999px;background:#f8fafc;color:#475569;">$${item.price_observed}</span>`:''}
+            </div>
+            ${item.notes?`<div style="font-size:12px;color:#64748b;font-style:italic;">${item.notes}</div>`:''}
+            ${photos.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${photos.map(p=>`<img src="${p.data}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="UI.showPhoto('${p.id}')">`).join('')}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    UI.openModal(items.length+' Inspection Item'+(items.length!==1?'s':''),body);
+  },
+  deleteItem(itemId,visitId){
+    if(!confirm('Delete this inspection item and its photos?'))return;
+    DB.getItemPhotos(itemId).forEach(p=>DB.deletePhoto(p.id));
+    DB.delete('inspection_items',itemId);
+    UI.closeModal();UI.toast('Item deleted');
+    this.viewVisitItems(visitId);
+  },
+  toggleActive(t,id){DB.toggleActive(t,id);this.showTable(t);},
+  openForm(table,id){
+    const rec=id?DB.getById(table,id):null;
+    const isEdit=!!rec;const v=rec||{};
+    const tf=(fid,lbl,val,req)=>`<div style="margin-bottom:12px;"><label class="slbl">${lbl}${req?' *':''}</label><input ${req?'required':''} id="af-${fid}" value="${val||''}" class="finput" type="text"></div>`;
+    const sf=(fid,lbl,opts,val)=>`<div style="margin-bottom:12px;"><label class="slbl">${lbl}</label><select id="af-${fid}" class="finput">${opts.map(o=>`<option value="${o.v||o}" ${val===(o.v||o)?'selected':''}>${o.l||o}</option>`).join('')}</select></div>`;
+    let fields='';
+    if(table==='customers')fields=[tf('name','Customer Name',v.name,true),tf('account_number','Account Number',v.account_number),sf('type_id','Type',DB.getAll('customer_types').map(t=>({v:t.id,l:t.name})),v.type_id),sf('channel','Channel',['Retail','Wholesale'],v.channel||'Retail'),tf('address','Address',v.address),tf('city','City',v.city),tf('state','State',v.state),tf('region','Region',v.region)].join('');
+    else if(table==='products')fields=[tf('name','Product Name',v.name,true),tf('brand','Brand',v.brand),sf('category_id','Category',DB.getAll('fruit_categories').filter(c=>c.active).map(c=>({v:c.id,l:c.name})),v.category_id)].join('');
+    else if(table==='fruit_categories')fields=tf('name','Category Name',v.name,true);
+    else if(table==='users')fields=[tf('id','Email (User ID)',v.id,true),tf('name','Full Name',v.name,true),sf('role','Role',['Admin','Team Member'],v.role||'Team Member')].join('');
+    else if(table==='customer_types')fields=tf('name','Type Name',v.name,true);
+    UI.openModal((isEdit?'Edit':'Add')+' Record',`<form onsubmit="Admin.saveRecord(event,'${table}','${id||''}')" style="display:flex;flex-direction:column;gap:0;">${fields}<input type="hidden" id="af-orig-id" value="${id||''}"><button type="submit" class="btn-green" style="margin-top:8px;">Save</button></form>`);
+  },
+  saveRecord(e,table,origId){
+    e.preventDefault();
+    const g=fid=>{const el=document.getElementById('af-'+fid);return el?el.value:'';};
+    const existing=origId?DB.getById(table,origId):null;
+    let rec={...(existing||{}),active:existing?existing.active:true};
+    if(table==='customers')Object.assign(rec,{id:origId||DB.genId(),name:g('name'),account_number:g('account_number'),type_id:g('type_id'),channel:g('channel'),address:g('address'),city:g('city'),state:g('state'),region:g('region')});
+    else if(table==='products')Object.assign(rec,{id:origId||DB.genId(),name:g('name'),brand:g('brand'),category_id:g('category_id')});
+    else if(table==='fruit_categories')Object.assign(rec,{id:origId||DB.genId(),name:g('name')});
+    else if(table==='users'){const uid=g('id');rec={id:uid,name:g('name'),role:g('role'),active:rec.active!==false};}
+    else if(table==='customer_types')Object.assign(rec,{id:origId||DB.genId(),name:g('name')});
+    DB.save(table,rec);UI.closeModal();UI.toast('Saved');this.showTable(table);
+  },
+  importCSV(event,table){
+    const file=event.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const lines=e.target.result.split('\n').filter(l=>l.trim());
+      const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_'));
+      let imported=0,errors=0;
+      for(let i=1;i<lines.length;i++){
+        const vals=lines[i].split(',').map(v=>v.trim().replace(/^"|"$/g,''));
+        const row={};headers.forEach((h,ix)=>{row[h]=vals[ix]||'';});
+        if(!row.name&&!row.id){errors++;continue;}
+        DB.save(table,{id:row.id||row.account_number||DB.genId(),active:true,...row});imported++;
+      }
+      UI.toast('Imported '+imported+(errors?' ('+errors+' skipped)':''));this.showTable(table);
+    };
+    reader.readAsText(file);event.target.value='';
+  }
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+  try{DB.seed();}catch(e){DB._noLS=true;Object.entries(SEED).forEach(([k,v])=>{DB._mem['fna_'+k]=JSON.parse(JSON.stringify(v));});}
+  const users=DB.getAll('users').filter(u=>u.active);
+  document.getElementById('user-list').innerHTML=users.map(u=>`
+    <button onclick="Actions.login('${u.id}')" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;border:1px solid #e2e8f0;background:white;cursor:pointer;margin-bottom:8px;text-align:left;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#16a34a;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;flex-shrink:0;">${H.initials(u.name)}</div>
+      <div style="flex:1;"><div style="font-weight:600;color:#1e293b;font-size:17px;">${u.name}</div><div style="color:#94a3b8;font-size:14px;margin-top:2px;">${u.role}</div></div>
+      <span style="color:#cbd5e1;font-size:20px;">→</span>
+    </button>`).join('');
+  try{const s=localStorage.getItem('fna_session');if(s&&DB.getById('users',s))Actions.login(s);}catch(e){}
+});
+</script>
+</body>
+</html>
